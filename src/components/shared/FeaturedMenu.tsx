@@ -14,7 +14,7 @@ const featuredItems = [
     price: 550,
     location: "Dhanmondi, Dhaka",
     vendor: "Pizza House",
-    image: "/assets/pizzas/pizza1.jpe g",
+    image: "/assets/pizzas/pizza1.jpeg",
     rating: 4.8,
   },
   {
@@ -71,7 +71,7 @@ const featuredItems = [
 
 const FeaturedMenu = () => {
   return (
-    <section className="bg-white py-16 dark:bg-[#111111] sm:py-20">
+    <section className="bg-white py-2 dark:bg-[#111111] sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Section Heading */}
