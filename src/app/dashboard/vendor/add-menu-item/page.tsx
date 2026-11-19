@@ -8,13 +8,14 @@ import {
   Loader2,
   PlusCircle,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 3;
+const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 8;
 
 export default function AddMenuItemPage() {
   const router = useRouter();
@@ -392,7 +393,7 @@ export default function AddMenuItemPage() {
           {imageUrl && (
             <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
               {!imageError ? (
-                <img
+                <Image
                   src={imageUrl}
                   alt="Pizza preview"
                   onError={() => setImageError(true)}
