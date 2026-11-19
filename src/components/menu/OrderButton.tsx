@@ -28,9 +28,11 @@ export default function OrderButton({
   const [checkingOrder, setCheckingOrder] = useState(true);
   const [alreadyOrdered, setAlreadyOrdered] = useState(false);
 
-  const user = session?.user as
-    | (typeof session.user & { role?: string })
-    | undefined;
+type SessionUser = NonNullable<typeof session>["user"] & {
+  role?: string;
+};
+
+const user = session?.user as SessionUser | undefined;
 
   // Check existing order when the customer opens the page
   useEffect(() => {
