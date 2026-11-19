@@ -1,5 +1,4 @@
 import React from 'react';
-import VendorAddMenuItemsPage from '../add-menu-items/page';
 
 const VendorMyMenuItemsPage = () => {
     return (
