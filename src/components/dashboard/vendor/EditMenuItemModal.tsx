@@ -13,7 +13,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { toast } from "sonner";
-import { updateMenuItem } from "@/lib/api/vendor-menu-api";
+import { updateMenuItem } from "@/lib/api/vendor/vendor-menu-api";
 
 type MenuItem = {
   _id: string;

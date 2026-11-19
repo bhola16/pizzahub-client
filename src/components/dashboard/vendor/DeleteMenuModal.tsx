@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteMenuItem } from "@/lib/api/vendor-menu-api";
+import { deleteMenuItem } from "@/lib/api/vendor/vendor-menu-api";
 
 type Props = {
   item: {

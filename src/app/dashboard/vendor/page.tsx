@@ -17,7 +17,7 @@ import { useSession } from "@/lib/auth-client";
 import {
   getVendorDashboard,
   type VendorDashboardData,
-} from "@/lib/api/vendor-dashboard-api";
+} from "@/lib/api/vendor/vendor-dashboard-api";
 
 export default function VendorDashboardPage() {
   const { data: session, isPending } = useSession();

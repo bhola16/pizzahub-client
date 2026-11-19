@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import {
   getVendorMenuItems,
   updateMenuItemAvailability,
-} from "@/lib/api/vendor-menu-api";
+} from "@/lib/api/vendor/vendor-menu-api";
 import { useSession } from "@/lib/auth-client";
 
 import DeleteMenuModal from "@/components/dashboard/vendor/DeleteMenuModal";
