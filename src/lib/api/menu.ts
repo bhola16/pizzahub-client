@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface MenuItem {
@@ -51,7 +53,8 @@ export async function getMenuItems(filters?: {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch menu items");
+      toast.error("Failed to fetch menu items");
+      return [];
     }
 
     const result: MenuResponse = await response.json();
