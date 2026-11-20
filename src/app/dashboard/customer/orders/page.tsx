@@ -41,7 +41,7 @@ import {
 
 import { deleteRejectedCustomerOrder } from "@/lib/api/customer/dashboard-api";
 
-type OrderFilter = "all" | Order["status"];
+type OrderFilter = "all" | "pending" | "accepted" | "rejected";
 
 export default function MyOrdersPage() {
   const { data: session, isPending } = authClient.useSession();
@@ -70,7 +70,6 @@ export default function MyOrdersPage() {
 
     try {
       setLoading(true);
-
       const data = await getCustomerOrders(userEmail);
       setOrders(data);
     } catch (error) {
@@ -112,13 +111,11 @@ export default function MyOrdersPage() {
       );
 
       setExpandedOrderId(null);
-
       toast.success("Your order has been withdrawn successfully.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to withdraw order.",
       );
-
       await fetchOrders();
     } finally {
       setWithdrawingId(null);
@@ -145,13 +142,11 @@ export default function MyOrdersPage() {
       );
 
       setExpandedOrderId(null);
-
       toast.success("Rejected order deleted successfully.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to delete order.",
       );
-
       await fetchOrders();
     } finally {
       setDeletingId(null);
@@ -199,6 +194,8 @@ export default function MyOrdersPage() {
     accepted:
       "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
     rejected: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+    cancelled:
+      "bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-400",
   };
 
   // Loading state
@@ -248,7 +245,6 @@ export default function MyOrdersPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold sm:text-4xl">My Orders</h1>
-
               <p className="mt-2 text-muted-foreground">
                 View your orders and track their delivery status.
               </p>
@@ -265,23 +261,24 @@ export default function MyOrdersPage() {
           </div>
         </div>
 
-        {/* Empty State */}
+        {/* No Orders */}
         {orders.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-orange-100 text-orange-500 dark:bg-orange-500/10">
+          <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center shadow-sm">
+            <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 text-orange-500 dark:from-orange-500/20 dark:to-amber-500/10">
               <ShoppingBag size={30} />
             </div>
 
-            <h2 className="text-xl font-bold">No Orders Yet</h2>
+            <h2 className="text-lg font-bold">No Orders Yet</h2>
 
-            <p className="mt-2 text-sm text-muted-foreground">
-              You haven&apos;t placed any orders yet. Explore our menu and find
-              something delicious!
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              You haven&apos;t placed any orders yet. Explore our menu and
+              discover something delicious!
             </p>
 
             <Link
               href="/menu"
-              className="mt-6 inline-flex rounded-lg bg-orange-500 px-6 py-3 font-semibold text-white transition hover:bg-orange-600">
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 hover:shadow-md">
+              <ShoppingBag size={16} />
               Explore Menu
             </Link>
           </div>
@@ -325,14 +322,13 @@ export default function MyOrdersPage() {
                   <ShoppingBag size={30} />
                 </div>
 
-                <h3 className="text-lg font-bold text-foreground">
-                  No {activeFilter === "all" ? "" : activeFilter} Orders Found
+                <h3 className="text-lg font-bold">
+                  No {activeFilter} Orders Found
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                  {activeFilter === "all"
-                    ? "You haven't placed any orders yet. Explore our menu and discover something delicious!"
-                    : `You don't have any ${activeFilter} orders at the moment. Your orders will appear here when their status changes.`}
+                  You don&apos;t have any {activeFilter} orders at the moment.
+                  Your orders will appear here when their status changes.
                 </p>
 
                 <button
@@ -403,7 +399,6 @@ export default function MyOrdersPage() {
                                   <p className="text-xs text-muted-foreground">
                                     Vendor
                                   </p>
-
                                   <p className="font-semibold">
                                     {order.vendorName}
                                   </p>
@@ -421,7 +416,6 @@ export default function MyOrdersPage() {
                                   <p className="text-xs text-muted-foreground">
                                     Delivery Date
                                   </p>
-
                                   <p className="font-semibold">
                                     {formatDate(order.deliveryDate)}
                                   </p>
@@ -476,7 +470,6 @@ export default function MyOrdersPage() {
                                     <AlertDialogTitle>
                                       Withdraw this order?
                                     </AlertDialogTitle>
-
                                     <AlertDialogDescription>
                                       Are you sure you want to withdraw your
                                       order for {order.itemName}? This action
@@ -537,7 +530,6 @@ export default function MyOrdersPage() {
                                       <AlertDialogTitle>
                                         Delete this rejected order?
                                       </AlertDialogTitle>
-
                                       <AlertDialogDescription>
                                         Are you sure you want to permanently
                                         delete your rejected order for{" "}
@@ -581,8 +573,18 @@ export default function MyOrdersPage() {
                               </div>
                             )}
 
-                            
-                            
+                            {/* Cancelled Order */}
+                            {order.status === "cancelled" && (
+                              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50 px-3 py-2 dark:border-gray-700 dark:from-gray-900/40 dark:to-slate-900/30">
+                                <XCircle
+                                  size={17}
+                                  className="shrink-0 text-gray-500"
+                                />
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  This order has been cancelled.
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -595,7 +597,6 @@ export default function MyOrdersPage() {
                               <h3 className="text-lg font-bold">
                                 Order Details
                               </h3>
-
                               <p className="mt-1 text-sm text-muted-foreground">
                                 Complete information about your order
                               </p>
@@ -611,14 +612,12 @@ export default function MyOrdersPage() {
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
                                   <Store size={18} />
                                 </div>
-
                                 <h4 className="font-semibold">
                                   Vendor Information
                                 </h4>
                               </div>
 
                               <p className="font-medium">{order.vendorName}</p>
-
                               <p className="mt-1 break-all text-sm text-muted-foreground">
                                 {order.vendorEmail}
                               </p>
@@ -630,14 +629,12 @@ export default function MyOrdersPage() {
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
                                   <CalendarDays size={18} />
                                 </div>
-
                                 <h4 className="font-semibold">Delivery Date</h4>
                               </div>
 
                               <p className="font-medium">
                                 {formatDate(order.deliveryDate)}
                               </p>
-
                               <p className="mt-1 text-sm text-muted-foreground">
                                 Scheduled delivery
                               </p>
@@ -649,12 +646,10 @@ export default function MyOrdersPage() {
                                 <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
                                   <MapPin size={18} />
                                 </div>
-
                                 <div>
                                   <h4 className="font-semibold">
                                     Delivery Address
                                   </h4>
-
                                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                                     {order.deliveryAddress}
                                   </p>
@@ -669,12 +664,10 @@ export default function MyOrdersPage() {
                                   <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
                                     <MessageSquare size={18} />
                                   </div>
-
                                   <div>
                                     <h4 className="font-semibold">
                                       Your Message
                                     </h4>
-
                                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                                       {order.customerMessage}
                                     </p>
@@ -690,12 +683,10 @@ export default function MyOrdersPage() {
                               <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                 <Clock size={18} />
                               </div>
-
                               <div>
                                 <p className="text-xs text-muted-foreground">
                                   Request Date
                                 </p>
-
                                 <p className="mt-1 text-sm font-semibold">
                                   {formatDate(order.createdAt)}
                                 </p>
@@ -706,7 +697,6 @@ export default function MyOrdersPage() {
                               <p className="mb-1 text-xs text-muted-foreground">
                                 Order Status
                               </p>
-
                               <span
                                 className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[order.status]}`}>
                                 {order.status}
