@@ -1,5 +1,4 @@
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
+const SERVER_URL =  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export interface VendorSubscription {
   subscriptionPlan: "free" | "premium";
   subscriptionStatus?: string;
@@ -23,9 +22,7 @@ async function getApiResponse<T>(response: Response): Promise<T> {
   try {
     return JSON.parse(text) as T;
   } catch {
-    throw new Error(
-      `Server returned an invalid response (${response.status}).`,
-    );
+    throw new Error('Invalid server response.');
   }
 }
 
@@ -33,10 +30,18 @@ async function getApiResponse<T>(response: Response): Promise<T> {
 export async function getVendorSubscription(
   vendorEmail: string,
 ): Promise<VendorSubscription> {
-  const response = await fetch(
-    `${SERVER_URL}/vendor-dashboard/${encodeURIComponent(vendorEmail)}`,
-    { cache: "no-store" },
-  );
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${SERVER_URL}/vendor-dashboard/${encodeURIComponent(vendorEmail)}`,
+      { cache: "no-store" },
+    );
+  } catch {
+    throw new Error(
+      `Cannot connect to backend at ${SERVER_URL}. Check whether your Express server is running.`,
+    );
+  }
 
   const result = await getApiResponse<VendorDashboardResponse>(response);
 

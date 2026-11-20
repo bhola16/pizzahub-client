@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Crown,
@@ -9,6 +10,7 @@ import {
   ShieldCheck,
   Sparkles,
   Zap,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,7 +18,6 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 import {
-  createSubscriptionCheckout,
   getVendorSubscription,
   type VendorSubscription,
 } from "@/lib/api/vendor/subscription-api";
@@ -35,7 +36,7 @@ const plans = [
   {
     name: "Premium",
     description: "Grow your restaurant and reach more customers.",
-    price: "Monthly subscription",
+    price: "৳200",
     features: [
       "Unlimited active menu items",
       "Premium vendor badge",
@@ -46,6 +47,7 @@ const plans = [
 ];
 
 export default function VendorSubscriptionPage() {
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   const [subscription, setSubscription] = useState<VendorSubscription>({
@@ -54,62 +56,54 @@ export default function VendorSubscriptionPage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const user = session?.user as { email?: string; role?: string } | undefined;
 
   const vendorEmail = user?.email;
 
   const fetchSubscription = useCallback(async () => {
-    if (!vendorEmail) return;
+    if (!vendorEmail) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+      setLoadError("");
 
       const data = await getVendorSubscription(vendorEmail);
+
       setSubscription(data);
     } catch (error) {
       console.error("Subscription fetch error:", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not load subscription information.",
-      );
+      const message =
+        error instanceof TypeError
+          ? "Cannot connect to the server. Please make sure your backend is running and your API URL is correct."
+          : error instanceof Error
+            ? error.message
+            : "Could not load subscription information.";
+
+      setLoadError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   }, [vendorEmail]);
 
   useEffect(() => {
-    if (!isPending && vendorEmail) {
-      fetchSubscription();
-    } else if (!isPending && !vendorEmail) {
-      setLoading(false);
+    if (!isPending) {
+      if (vendorEmail) {
+        fetchSubscription();
+      } else {
+        setLoading(false);
+      }
     }
   }, [isPending, vendorEmail, fetchSubscription]);
 
-  const handleUpgrade = async () => {
-    if (!vendorEmail) {
-      toast.error("Please sign in to continue.");
-      return;
-    }
-
-    try {
-      setUpgrading(true);
-
-      const checkoutUrl = await createSubscriptionCheckout(vendorEmail);
-
-      window.location.href = checkoutUrl;
-    } catch (error) {
-      console.error("Stripe checkout error:", error);
-
-      toast.error(
-        error instanceof Error ? error.message : "Unable to start checkout.",
-      );
-
-      setUpgrading(false);
-    }
+  const handleUpgrade = () => {
+    router.push("/dashboard/payment");
   };
 
   if (isPending || loading) {
@@ -158,6 +152,35 @@ export default function VendorSubscriptionPage() {
           Refresh Status
         </Button>
       </div>
+
+      {/* Backend Connection Error */}
+      {loadError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950/30">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-800 dark:text-red-300">
+                Unable to load subscription
+              </h3>
+
+              <p className="mt-1 text-sm text-red-700 dark:text-red-400">
+                {loadError}
+              </p>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={fetchSubscription}
+                disabled={loading}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Current Subscription */}
       <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
@@ -242,8 +265,7 @@ export default function VendorSubscriptionPage() {
 
                 {premium && (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Recurring billing through Stripe. Price configured in
-                    Stripe.
+                    Monthly subscription
                   </p>
                 )}
               </div>
@@ -265,21 +287,9 @@ export default function VendorSubscriptionPage() {
                   Current Plan
                 </Button>
               ) : premium ? (
-                <Button
-                  className="w-full"
-                  onClick={handleUpgrade}
-                  disabled={upgrading}>
-                  {upgrading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting to Stripe...
-                    </>
-                  ) : (
-                    <>
-                      <Crown className="mr-2 h-4 w-4" />
-                      Upgrade to Premium
-                    </>
-                  )}
+                <Button className="w-full" onClick={handleUpgrade}>
+                  <Crown className="mr-2 h-4 w-4" />
+                  Upgrade to Premium
                 </Button>
               ) : (
                 <Button disabled variant="outline" className="w-full">
