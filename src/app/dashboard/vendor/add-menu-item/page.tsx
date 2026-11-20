@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  addMenuItem,
+  uploadMenuItemImage,
+} from "@/lib/api/vendor/add-menu-api";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
@@ -8,20 +12,20 @@ import {
   Loader2,
   PlusCircle,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 8;
+const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) ||3;
 
 export default function AddMenuItemPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
   const user = session?.user;
+
   const plan =
     (user as (typeof user & { plan?: string }) | undefined)?.plan || "free";
 
@@ -42,9 +46,18 @@ export default function AddMenuItemPage() {
     location: "",
   });
 
-  // Fetch the vendor's actual menu item count
+  // Fetch vendor's menu item count
   useEffect(() => {
-    if (!user?.email || !API_URL) return;
+    if (!user?.email) {
+      setCountLoading(false);
+      return;
+    }
+
+    if (!API_URL) {
+      toast.error("API URL is missing. Check your environment variables.");
+      setCountLoading(false);
+      return;
+    }
 
     const fetchItemCount = async () => {
       try {
@@ -54,24 +67,30 @@ export default function AddMenuItemPage() {
           `${API_URL}/menuItems/count/${encodeURIComponent(user.email)}`,
         );
 
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error("Failed to fetch menu item count.");
+          throw new Error(data.message || "Failed to fetch menu item count.");
         }
 
-        const data = await response.json();
         setCurrentItems(data.totalItems ?? 0);
       } catch (error) {
         console.error("Menu item count error:", error);
-        toast.error("Unable to fetch your menu item count.");
+
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to fetch your menu item count.",
+        );
       } finally {
         setCountLoading(false);
       }
     };
-    console.log(currentItems);
 
     fetchItemCount();
   }, [user?.email]);
 
+  // Handle form changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -85,6 +104,7 @@ export default function AddMenuItemPage() {
     }));
   };
 
+  // Submit menu item
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -104,8 +124,39 @@ export default function AddMenuItemPage() {
     }
 
     if (isFreePlan && currentItems >= totalLimit) {
-      toast.error("You have reached your menu item limit. Upgrade your plan.");
+      toast.error(
+        "You have reached your menu item limit. Please upgrade your plan.",
+      );
       router.push("/dashboard/vendor/subscription");
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      toast.error("Please enter a pizza name.");
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Please select a pizza category.");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast.error("Please enter a pizza description.");
+      return;
+    }
+
+    if (!formData.location.trim()) {
+      toast.error("Please enter your restaurant location.");
+      return;
+    }
+
+    if (
+      !formData.price ||
+      !Number.isFinite(Number(formData.price)) ||
+      Number(formData.price) <= 0
+    ) {
+      toast.error("Please enter a valid pizza price.");
       return;
     }
 
@@ -114,54 +165,62 @@ export default function AddMenuItemPage() {
       return;
     }
 
-    if (
-      !formData.name.trim() ||
-      !formData.category ||
-      !formData.description.trim() ||
-      !formData.location.trim() ||
-      !Number.isFinite(Number(formData.price)) ||
-      Number(formData.price) <= 0
-    ) {
-      toast.error("Please complete all required fields.");
+    try {
+      const parsedUrl = new URL(imageUrl.trim());
+
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        toast.error("Please enter a valid image URL.");
+        return;
+      }
+    } catch {
+      toast.error("Please enter a valid image URL.");
+      return;
+    }
+
+    if (imageError) {
+      toast.error("The image URL is invalid. Please enter another URL.");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/menuItems`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          price: Number(formData.price),
-          images: [imageUrl.trim()],
-          vendorName: user.name,
-          vendorEmail: user.email,
-          plan,
-        }),
+      // Upload image URL to ImgBB
+      toast.loading("Uploading pizza image to ImgBB...", {
+        id: "menu-upload",
       });
 
-      const result = await response.json();
+      const uploadedImageUrl = await uploadMenuItemImage(imageUrl.trim());
+
+      // Save menu item
+      const result = await addMenuItem({
+        ...formData,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        location: formData.location.trim(),
+        price: Number(formData.price),
+        images: [uploadedImageUrl],
+        vendorName: user.name,
+        vendorEmail: user.email,
+        plan,
+      });
 
       if (result.upgradeRequired) {
-        toast.error(result.message);
+        toast.error(
+          result.message || "Please upgrade your plan to add more menu items.",
+          { id: "menu-upload" },
+        );
+
         router.push("/dashboard/vendor/subscription");
         return;
       }
 
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to add menu item.");
-      }
+      toast.success("Menu item submitted for admin approval!", {
+        id: "menu-upload",
+      });
 
-      toast.success("Menu item submitted for admin approval!");
-
-      // Update the displayed item count
       setCurrentItems((prev) => prev + 1);
 
-      // Reset form
       setFormData({
         name: "",
         category: "",
@@ -181,6 +240,7 @@ export default function AddMenuItemPage() {
         error instanceof Error
           ? error.message
           : "Something went wrong. Please try again.",
+        { id: "menu-upload" },
       );
     } finally {
       setLoading(false);
@@ -224,8 +284,7 @@ export default function AddMenuItemPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-sm font-semibold text-gray-700">
-            Menu Items:{" "} 
-
+            Menu Items:{" "}
             {countLoading
               ? "Loading..."
               : `${currentItems}/${isFreePlan ? totalLimit : "Unlimited"}`}
@@ -260,6 +319,7 @@ export default function AddMenuItemPage() {
             <label htmlFor="name" className="text-sm font-medium text-gray-700">
               Pizza Name *
             </label>
+
             <input
               id="name"
               name="name"
@@ -279,6 +339,7 @@ export default function AddMenuItemPage() {
               className="text-sm font-medium text-gray-700">
               Pizza Category *
             </label>
+
             <select
               id="category"
               name="category"
@@ -308,6 +369,7 @@ export default function AddMenuItemPage() {
               className="text-sm font-medium text-gray-700">
               Price (৳) *
             </label>
+
             <input
               id="price"
               name="price"
@@ -329,6 +391,7 @@ export default function AddMenuItemPage() {
               className="text-sm font-medium text-gray-700">
               Location (Area / City) *
             </label>
+
             <input
               id="location"
               name="location"
@@ -349,6 +412,7 @@ export default function AddMenuItemPage() {
             className="text-sm font-medium text-gray-700">
             Description *
           </label>
+
           <textarea
             id="description"
             name="description"
@@ -369,13 +433,15 @@ export default function AddMenuItemPage() {
               className="text-sm font-medium text-gray-700">
               Pizza Image URL *
             </label>
+
             <p className="mt-1 text-xs text-gray-500">
-              Paste a direct pizza image URL.
+              Paste a direct pizza image URL. It will be uploaded to ImgBB.
             </p>
           </div>
 
           <div className="flex items-center gap-3 rounded-lg border border-gray-300 px-3 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
             <ImagePlus size={20} className="shrink-0 text-gray-400" />
+
             <input
               id="imageUrl"
               type="url"
@@ -393,22 +459,21 @@ export default function AddMenuItemPage() {
           {imageUrl && (
             <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
               {!imageError ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={imageUrl}
                   alt="Pizza preview"
-                  onError={() => setImageError(true)}
+                  onError={() => {
+                    setImageError(true);
+                    toast.error("Unable to load image. Please check the URL.");
+                  }}
                   className="h-52 w-full object-cover"
                 />
               ) : (
-                <div className="flex h-52 items-center justify-center text-sm text-red-500">
-                  Unable to load image preview.
+                <div className="flex h-52 items-center justify-center text-sm text-gray-500">
+                  Image preview unavailable.
                 </div>
               )}
-
-              <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow">
-                <CheckCircle2 size={14} className="text-green-600" />
-                Image Preview
-              </div>
             </div>
           )}
         </div>
@@ -416,10 +481,12 @@ export default function AddMenuItemPage() {
         {/* Approval Notice */}
         <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
           <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-blue-600" />
+
           <div>
             <p className="text-sm font-semibold text-blue-900">
               Admin Approval Required
             </p>
+
             <p className="mt-1 text-sm text-blue-700">
               Your pizza will remain pending until an admin reviews and approves
               it.
@@ -442,7 +509,7 @@ export default function AddMenuItemPage() {
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Saving...
+                Uploading & Saving...
               </>
             ) : (
               <>

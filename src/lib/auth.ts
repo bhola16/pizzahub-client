@@ -14,17 +14,21 @@ export const auth = betterAuth({
     enabled: true,
   },
 
-  
   user: {
-  additionalFields: {
-    role: {
-      type: "string",
-      required: false,
-      defaultValue: "customer",
-      input: true,
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "customer",
+        input: true,
+      },
     },
   },
-},
- 
 
+  subscriptionPlan: {
+    type: "string",
+    required: false,
+    defaultValue: "free",
+    input: false,
+  },
 });
