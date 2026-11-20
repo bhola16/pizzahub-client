@@ -1,12 +1,13 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export type VendorDashboardData = {
+export interface VendorDashboardData {
   totalMenuItems: number;
   activeMenuItems: number;
   pendingOrders: number;
   acceptedOrders: number;
-  subscriptionPlan: string;
-};
+  subscriptionPlan?: string;
+  premium?: boolean;
+}
 
 export async function getVendorDashboard(
   vendorEmail: string,

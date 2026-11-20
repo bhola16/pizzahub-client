@@ -1,5 +1,6 @@
 "use client";
 
+import { getVendorPremiumById } from "@/lib/api/payment/vendor-premium-api";
 import {
   addMenuItem,
   uploadMenuItemImage,
@@ -9,6 +10,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   ImagePlus,
+  Infinity,
   Loader2,
   PlusCircle,
 } from "lucide-react";
@@ -17,8 +19,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) ||3;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 3;
 
 export default function AddMenuItemPage() {
   const router = useRouter();
@@ -26,10 +29,8 @@ export default function AddMenuItemPage() {
 
   const user = session?.user;
 
-  const plan =
-    (user as (typeof user & { plan?: string }) | undefined)?.plan || "free";
-
-  const isFreePlan = plan.toLowerCase() === "free";
+  const [isPremium, setIsPremium] = useState(false);
+  const [premiumLoading, setPremiumLoading] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [countLoading, setCountLoading] = useState(true);
@@ -46,18 +47,56 @@ export default function AddMenuItemPage() {
     location: "",
   });
 
-  // Fetch vendor's menu item count
+  const plan = isPremium ? "premium" : "free";
+  const isFreePlan = !isPremium;
+
+  // Fetch vendor Premium status
   useEffect(() => {
-    if (!user?.email) {
-      setCountLoading(false);
+    if (!user?.id) {
+      setPremiumLoading(true);
       return;
     }
 
-    if (!API_URL) {
-      toast.error("API URL is missing. Check your environment variables.");
-      setCountLoading(false);
+    let cancelled = false;
+
+    const fetchPremiumStatus = async () => {
+      try {
+        setPremiumLoading(true);
+
+        const result = await getVendorPremiumById(user.id);
+
+        if (!cancelled) {
+          setIsPremium(result.premium === true);
+        }
+      } catch (error) {
+        console.error("Premium status error:", error);
+
+        if (!cancelled) {
+          setIsPremium(false);
+          toast.error("Unable to check your subscription status.");
+        }
+      } finally {
+        if (!cancelled) {
+          setPremiumLoading(false);
+        }
+      }
+    };
+
+    fetchPremiumStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  // Fetch vendor's menu item count
+  useEffect(() => {
+    if (!user?.email) {
+      setCountLoading(true);
       return;
     }
+
+    let cancelled = false;
 
     const fetchItemCount = async () => {
       try {
@@ -73,21 +112,31 @@ export default function AddMenuItemPage() {
           throw new Error(data.message || "Failed to fetch menu item count.");
         }
 
-        setCurrentItems(data.totalItems ?? 0);
+        if (!cancelled) {
+          setCurrentItems(data.totalItems ?? 0);
+        }
       } catch (error) {
         console.error("Menu item count error:", error);
 
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Unable to fetch your menu item count.",
-        );
+        if (!cancelled) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Unable to fetch your menu item count.",
+          );
+        }
       } finally {
-        setCountLoading(false);
+        if (!cancelled) {
+          setCountLoading(false);
+        }
       }
     };
 
     fetchItemCount();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.email]);
 
   // Handle form changes
@@ -118,15 +167,17 @@ export default function AddMenuItemPage() {
       return;
     }
 
-    if (countLoading) {
-      toast.error("Please wait while your menu item count loads.");
+    if (premiumLoading || countLoading) {
+      toast.error("Please wait while your account information loads.");
       return;
     }
 
-    if (isFreePlan && currentItems >= totalLimit) {
+    // Only Free vendors have a menu item limit
+    if (!isPremium && currentItems >= totalLimit) {
       toast.error(
-        "You have reached your menu item limit. Please upgrade your plan.",
+        "You have reached your free menu item limit. Please upgrade to Premium.",
       );
+
       router.push("/dashboard/vendor/subscription");
       return;
     }
@@ -185,7 +236,7 @@ export default function AddMenuItemPage() {
     try {
       setLoading(true);
 
-      // Upload image URL to ImgBB
+      // Upload image to ImgBB
       toast.loading("Uploading pizza image to ImgBB...", {
         id: "menu-upload",
       });
@@ -272,25 +323,41 @@ export default function AddMenuItemPage() {
         <div>
           <p className="font-semibold text-gray-900">
             Your Current Plan:{" "}
-            <span className="text-orange-600 capitalize">{plan} Plan</span>
+            <span className="text-orange-600 capitalize">
+              {premiumLoading ? "Loading..." : `${plan} Plan`}
+            </span>
           </p>
 
           <p className="mt-1 text-sm text-gray-600">
-            {isFreePlan
-              ? `Free plan allows up to ${totalLimit} menu items. Premium offers unlimited items.`
-              : "Your Premium plan allows unlimited menu items."}
+            {premiumLoading
+              ? "Checking your subscription..."
+              : isFreePlan
+                ? `Free plan allows up to ${totalLimit} menu items. Premium offers unlimited items.`
+                : "Your Premium plan allows unlimited menu items."}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-sm font-semibold text-gray-700">
+          <h2 className="flex items-center gap-1 text-sm font-semibold text-gray-700">
             Menu Items:{" "}
-            {countLoading
-              ? "Loading..."
-              : `${currentItems}/${isFreePlan ? totalLimit : "Unlimited"}`}
+            {countLoading || premiumLoading ? (
+              "Loading..."
+            ) : (
+              <>
+                {currentItems}{" / "}
+                {isPremium ? (
+                  <span className="inline-flex text-orange-500 items-center gap-1">
+                    <Infinity className="h-5 w-5" />
+                    Unlimited
+                  </span>
+                ) : (
+                  totalLimit
+                )}
+              </>
+            )}
           </h2>
 
-          {isFreePlan && (
+          {isFreePlan && !premiumLoading && (
             <Link
               href="/dashboard/vendor/subscription"
               className="inline-flex w-fit items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700">
@@ -504,7 +571,7 @@ export default function AddMenuItemPage() {
 
           <button
             type="submit"
-            disabled={loading || countLoading}
+            disabled={loading || countLoading || premiumLoading}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60">
             {loading ? (
               <>
