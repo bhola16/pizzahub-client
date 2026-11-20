@@ -36,7 +36,7 @@ const plans = [
   {
     name: "Premium",
     description: "Grow your restaurant and reach more customers.",
-    price: "৳200",
+    price: "$20",
     features: [
       "Unlimited active menu items",
       "Premium vendor badge",
