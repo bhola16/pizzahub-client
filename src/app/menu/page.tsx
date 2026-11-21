@@ -1,6 +1,7 @@
 import MenuCard from "@/components/menu/MenuCard";
 import MenuFilters from "@/components/menu/MenuFilters";
 import { getMenuItems } from "@/lib/api/menu";
+import Link from "next/link";
 
 interface MenuPageProps {
   searchParams: Promise<{
@@ -10,13 +11,39 @@ interface MenuPageProps {
   }>;
 }
 
+const categories = [
+  "Classic Pizzas",
+  "Vegetarian Pizzas",
+  "Meat Lovers",
+  "Specialty / Gourmet Pizzas",
+  "Sides & Appetizers",
+  "Beverages & Desserts",
+];
+
 export default async function MenuPage({ searchParams }: MenuPageProps) {
   const filters = await searchParams;
 
+  // Fetch filtered menu items
   const items = await getMenuItems(filters);
+
+  // Fetch all approved and active menu items for filter counts
   const allItems = await getMenuItems();
 
-  const locations = [...new Set(allItems.map((item) => item.location))];
+  // Get unique locations
+  const locations = [
+    ...new Set(allItems.map((item) => item.location).filter(Boolean)),
+  ].sort();
+
+  // Calculate category counts
+  const categoryCounts: Record<string, number> = Object.fromEntries(
+    categories.map((category) => [
+      category,
+      allItems.filter(
+        (item) =>
+          item.category?.trim().toLowerCase() === category.toLowerCase(),
+      ).length,
+    ]),
+  );
 
   return (
     <main className="min-h-screen bg-orange-50/40 px-4 py-12 dark:bg-stone-950 sm:px-6 lg:px-8">
@@ -36,8 +63,12 @@ export default async function MenuPage({ searchParams }: MenuPageProps) {
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <MenuFilters locations={locations} />
+        {/* Search, Category and Location Filters */}
+        <MenuFilters
+          locations={locations}
+          categoryCounts={categoryCounts}
+          totalCount={allItems.length}
+        />
 
         {/* Menu Count */}
         <div className="flex items-center justify-between">
@@ -46,13 +77,13 @@ export default async function MenuPage({ searchParams }: MenuPageProps) {
           </h2>
 
           <span className="text-sm text-stone-500 dark:text-stone-400">
-            {items.length} items found
+            {items.length} {items.length === 1 ? "item" : "items"} found
           </span>
         </div>
 
         {/* Menu Items */}
         {items.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => (
               <MenuCard key={item._id} item={item} />
             ))}
@@ -60,39 +91,24 @@ export default async function MenuPage({ searchParams }: MenuPageProps) {
         ) : (
           /* Empty State */
           <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-orange-200 bg-gradient-to-b from-orange-50/80 via-white to-white px-6 py-16 text-center shadow-sm dark:border-stone-700 dark:from-stone-900 dark:via-stone-900 dark:to-stone-950 sm:py-20">
-            {/* Decorative Background */}
-            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-orange-100/60 blur-3xl dark:bg-orange-500/5" />
-
-            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-orange-100/60 blur-3xl dark:bg-orange-500/5" />
-
-            <div className="relative z-10 flex flex-col items-center">
-              {/* Icon */}
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange-100 text-4xl shadow-inner dark:bg-orange-500/10">
-                🍕
-              </div>
-
-              {/* Badge */}
-              <span className="mb-3 rounded-full bg-orange-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
-                Nothing to serve yet
-              </span>
-
-              {/* Title */}
-              <h3 className="text-2xl font-bold tracking-tight text-stone-800 dark:text-white sm:text-3xl">
-                No Menu Items Found
-              </h3>
-
-              {/* Description */}
-              <p className="mt-3 max-w-md text-sm leading-6 text-stone-500 dark:text-stone-400 sm:text-base">
-                We couldn&apos;t find any pizzas matching your search. Try a
-                different keyword or adjust your filters to discover something
-                delicious!
-              </p>
-
-              {/* Footer Text */}
-              <p className="mt-5 text-xs text-stone-400 dark:text-stone-500">
-                Fresh pizzas are waiting to be discovered!
-              </p>
+            <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-orange-100 dark:bg-stone-800">
+              <span className="text-4xl">🍕</span>
             </div>
+
+            <h3 className="text-xl font-bold text-stone-900 dark:text-white">
+              No Menu Items Found
+            </h3>
+
+            <p className="mt-2 max-w-md text-sm leading-6 text-stone-600 dark:text-stone-400">
+              We couldn't find any menu items matching your search or selected
+              filters. Try another category or location.
+            </p>
+
+            <Link
+              href="/menu"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600">
+              Clear Filters
+            </Link>
           </div>
         )}
       </div>

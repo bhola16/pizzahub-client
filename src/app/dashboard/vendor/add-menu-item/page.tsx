@@ -344,7 +344,8 @@ export default function AddMenuItemPage() {
               "Loading..."
             ) : (
               <>
-                {currentItems}{" / "}
+                {currentItems}
+                {" / "}
                 {isPremium ? (
                   <span className="inline-flex text-orange-500 items-center gap-1">
                     <Infinity className="h-5 w-5" />
@@ -415,17 +416,14 @@ export default function AddMenuItemPage() {
               required
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100">
               <option value="">Select pizza category</option>
-              <option value="Margherita">Margherita</option>
-              <option value="Pepperoni">Pepperoni</option>
-              <option value="Cheese">Cheese Pizza</option>
-              <option value="BBQ Chicken">BBQ Chicken</option>
-              <option value="Vegetarian">Vegetarian</option>
+              <option value="Classic Pizzas">Classic Pizzas</option>
+              <option value="Vegetarian Pizzas">Vegetarian Pizzas</option>
               <option value="Meat Lovers">Meat Lovers</option>
-              <option value="Seafood">Seafood</option>
-              <option value="Hawaiian">Hawaiian</option>
-              <option value="Spicy">Spicy Pizza</option>
-              <option value="Specialty">Specialty Pizza</option>
-              <option value="Other">Other</option>
+              <option value="Specialty / Gourmet Pizzas">
+                Specialty / Gourmet Pizzas
+              </option>
+              <option value="Sides & Appetizers">Sides & Appetizers</option>
+              <option value="Beverages & Desserts">Beverages & Desserts</option>
             </select>
           </div>
 
