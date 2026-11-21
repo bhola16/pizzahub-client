@@ -72,7 +72,7 @@ const PizzaCategories = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-[#FFF9F4] py-16 dark:bg-[#17120F] sm:py-20">
+    <section className="relative overflow-hidden bg-[#FFF9F4] py-12 dark:bg-[#17120F] sm:py-12">
       {/* Background Decorations */}
       <div className="pointer-events-none absolute -left-32 top-20 h-72 w-72 rounded-full bg-orange-200/30 blur-3xl dark:bg-orange-500/10" />
       <div className="pointer-events-none absolute -right-32 bottom-10 h-72 w-72 rounded-full bg-orange-300/20 blur-3xl dark:bg-orange-600/10" />

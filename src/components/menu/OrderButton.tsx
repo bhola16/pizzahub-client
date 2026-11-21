@@ -2,14 +2,10 @@
 
 import { CheckCircle, Loader2, ShoppingBag, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import {
-  cancelCustomerOrder,
-  checkExistingOrder,
-  placeOrder,
-} from "@/lib/api/orders";
+import { cancelCustomerOrder, placeOrder } from "@/lib/api/orders";
 import { authClient } from "@/lib/auth-client";
 
 import {
@@ -60,7 +56,6 @@ export default function OrderButton({
   const user = session?.user as SessionUser | undefined;
 
   const [loading, setLoading] = useState(false);
-  const [checkingOrder, setCheckingOrder] = useState(true);
   const [alreadyOrdered, setAlreadyOrdered] = useState(false);
   const [existingOrderId, setExistingOrderId] = useState("");
   const [orderStatus, setOrderStatus] = useState<
@@ -83,67 +78,8 @@ export default function OrderButton({
 
   const minDate = getLocalDate(new Date());
 
-  const refreshOrderStatus = async () => {
-    if (!user?.email || user.role !== "customer") {
-      setAlreadyOrdered(false);
-      setExistingOrderId("");
-      setOrderStatus(undefined);
-      return;
-    }
-
-    const result = await checkExistingOrder(itemId, user.email);
-
-    setAlreadyOrdered(result.alreadyOrdered);
-    setExistingOrderId(result.orderId || "");
-    setOrderStatus(result.status);
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const checkOrder = async () => {
-      if (isPending) return;
-
-      if (!user?.email || user.role !== "customer") {
-        setAlreadyOrdered(false);
-        setExistingOrderId("");
-        setOrderStatus(undefined);
-        setCheckingOrder(false);
-        return;
-      }
-
-      setCheckingOrder(true);
-
-      try {
-        const result = await checkExistingOrder(itemId, user.email);
-
-        if (!cancelled) {
-          setAlreadyOrdered(result.alreadyOrdered);
-          setExistingOrderId(result.orderId || "");
-          setOrderStatus(result.status);
-        }
-      } catch (error) {
-        console.error("Order check failed:", error);
-
-        if (!cancelled) {
-          toast.error("Could not check your existing order.");
-        }
-      } finally {
-        if (!cancelled) {
-          setCheckingOrder(false);
-        }
-      }
-    };
-
-    checkOrder();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [itemId, isPending, user?.email, user?.role]);
-
   const handleOrder = () => {
-    if (isPending || loading || checkingOrder) return;
+    if (isPending || loading) return;
 
     if (!session?.user) {
       router.push(
@@ -170,8 +106,6 @@ export default function OrderButton({
       toast.error("Only customers can place orders.");
       return;
     }
-
-    if (alreadyOrdered) return;
 
     if (status !== "approved" || !isActive) {
       toast.error("This menu item is currently unavailable.");
@@ -205,12 +139,6 @@ export default function OrderButton({
       toast.error(
         error instanceof Error ? error.message : "Failed to cancel your order.",
       );
-
-      try {
-        await refreshOrderStatus();
-      } catch (refreshError) {
-        console.error("Failed to refresh order status:", refreshError);
-      }
     } finally {
       setLoading(false);
     }
@@ -247,9 +175,10 @@ export default function OrderButton({
       });
 
       if (result.alreadyOrdered) {
-        await refreshOrderStatus();
-        setShowForm(false);
-        toast.info("You already have an active order for this item.");
+        toast.info(
+          result.message ||
+            "You already have an active order for this delivery date.",
+        );
         return;
       }
 
@@ -279,7 +208,6 @@ export default function OrderButton({
   const buttonDisabled =
     isPending ||
     loading ||
-    checkingOrder ||
     (!alreadyOrdered && (status !== "approved" || !isActive)) ||
     (alreadyOrdered && orderStatus !== "pending");
 
@@ -293,7 +221,7 @@ export default function OrderButton({
               <Button
                 type="button"
                 disabled={buttonDisabled}
-                className="flex w-full items-center justify-center text-md gap-2 rounded-xl bg-red-500 px-6 py-8 font-semibold  text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70">
+                className="flex w-full items-center justify-center text-md gap-2 rounded-xl bg-red-500 px-6 py-8 font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70">
                 {loading ? (
                   <Loader2 size={20} className="animate-spin" />
                 ) : (
@@ -341,7 +269,7 @@ export default function OrderButton({
               ? "bg-green-600 shadow-green-500/20"
               : "bg-orange-500 shadow-orange-500/20 hover:bg-orange-600"
           }`}>
-          {loading || isPending || checkingOrder ? (
+          {loading || isPending ? (
             <Loader2 size={20} className="animate-spin" />
           ) : alreadyOrdered ? (
             <CheckCircle size={20} />
@@ -351,7 +279,7 @@ export default function OrderButton({
 
           {loading
             ? "Please wait..."
-            : isPending || checkingOrder
+            : isPending
               ? "Checking..."
               : alreadyOrdered
                 ? "Already Ordered"

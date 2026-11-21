@@ -44,16 +44,23 @@ async function getApiResponse<T>(response: Response): Promise<T> {
   }
 }
 
-// Check existing active order
+// Check existing active order for the same delivery date
 export async function checkExistingOrder(
   itemId: string,
   customerEmail: string,
+  deliveryDate: string,
 ): Promise<{
+  success?: boolean;
   alreadyOrdered: boolean;
   orderId?: string;
   status?: Order["status"];
+  message?: string;
 }> {
-  const params = new URLSearchParams({ itemId, customerEmail });
+  const params = new URLSearchParams({
+    itemId,
+    customerEmail,
+    deliveryDate,
+  });
 
   const response = await fetch(
     `${SERVER_URL}/orders/check?${params.toString()}`,
@@ -61,6 +68,7 @@ export async function checkExistingOrder(
   );
 
   const result = await getApiResponse<{
+    success?: boolean;
     alreadyOrdered: boolean;
     orderId?: string;
     status?: Order["status"];
