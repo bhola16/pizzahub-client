@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URL as string);
-const db = client.db("pizzahub");
+export const db = client.db("pizzahub");
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {

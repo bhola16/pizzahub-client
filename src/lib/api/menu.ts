@@ -32,7 +32,7 @@ interface SingleMenuResponse {
   message?: string;
 }
 
-// Get all menu items with optional filters
+// Get all menu items
 export async function getMenuItems(filters?: {
   search?: string;
   category?: string;
@@ -53,15 +53,15 @@ export async function getMenuItems(filters?: {
     );
 
     if (!response.ok) {
-      toast.error("Failed to fetch menu items");
+      toast.error("Failed to fetch menu items. Please try again.");
       return [];
     }
 
     const result: MenuResponse = await response.json();
-
     return result.data || [];
   } catch (error) {
     console.error("Get menu items error:", error);
+    toast.error("Unable to connect to the server. Please try again later.");
     return [];
   }
 }
@@ -74,18 +74,18 @@ export async function getFeaturedMenuItems(): Promise<MenuItem[]> {
     });
 
     if (!response.ok) {
-      toast.error("Failed to fetch featured menu items");
+      toast.error("Unable to load featured menu items.");
       return [];
     }
 
     const result: MenuResponse = await response.json();
-
     return result.data || [];
-  } catch (error) {
-    console.error("Get featured menu items error:", error);
+  } catch {
+    toast.error("Server is unavailable. Please try again later.");
     return [];
   }
 }
+
 
 // Get a single menu item
 export async function getMenuItemById(id: string): Promise<MenuItem | null> {
@@ -99,10 +99,10 @@ export async function getMenuItemById(id: string): Promise<MenuItem | null> {
     }
 
     const result: SingleMenuResponse = await response.json();
-
     return result.data || null;
   } catch (error) {
     console.error("Get menu item error:", error);
+    toast.error("Unable to connect to the server. Please try again later.");
     return null;
   }
 }

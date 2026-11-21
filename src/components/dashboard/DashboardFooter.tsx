@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut, UserRound } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import Link from "next/link";
 
 const DashboardFooter = () => {
   const router = useRouter();
@@ -38,6 +39,9 @@ const DashboardFooter = () => {
   return (
     <div className="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">
       {/* User Profile */}
+      <Link
+      href={`/profile`}
+      >
       <div className="mb-4 flex items-center gap-3">
         {user?.image ? (
           <Image
@@ -63,6 +67,7 @@ const DashboardFooter = () => {
           </p>
         </div>
       </div>
+      </Link>
 
       {/* Sign Out */}
       <button
