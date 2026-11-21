@@ -11,7 +11,7 @@ export interface MenuItem {
   images: string[];
   location: string;
   vendorName: string;
-  vendorEmail: string; // Add this
+  vendorEmail: string;
   vendorPhone?: string;
   vendorAddress?: string;
   status: string;
@@ -62,6 +62,27 @@ export async function getMenuItems(filters?: {
     return result.data || [];
   } catch (error) {
     console.error("Get menu items error:", error);
+    return [];
+  }
+}
+
+// Get latest 6 featured menu items
+export async function getFeaturedMenuItems(): Promise<MenuItem[]> {
+  try {
+    const response = await fetch(`${SERVER_URL}/menuItems/featured`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      toast.error("Failed to fetch featured menu items");
+      return [];
+    }
+
+    const result: MenuResponse = await response.json();
+
+    return result.data || [];
+  } catch (error) {
+    console.error("Get featured menu items error:", error);
     return [];
   }
 }
