@@ -1,3 +1,4 @@
+
 export const getMyProfile = async () => {
   const response = await fetch("/api/profile", {
     method: "GET",

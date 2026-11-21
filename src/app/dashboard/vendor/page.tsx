@@ -133,7 +133,7 @@ export default function VendorDashboardPage() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>

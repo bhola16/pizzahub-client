@@ -101,8 +101,8 @@ export async function getMenuItemById(id: string): Promise<MenuItem | null> {
     const result: SingleMenuResponse = await response.json();
     return result.data || null;
   } catch (error) {
-    console.error("Get menu item error:", error);
-    toast.error("Unable to connect to the server. Please try again later.");
+    // console.error("Get menu item error:", error);
+    // toast.error("Unable to connect to the server. Please try again later.");
     return null;
   }
 }

@@ -1,18 +1,19 @@
+import { getSession } from "@/lib/core/server";
 import {
   ArrowLeft,
   ArrowUpRight,
+  CheckCircle2,
   Mail,
   MapPin,
   Phone,
   ShoppingBag,
   Store,
-  Utensils,
-  CheckCircle2,
   Tag,
+  Utensils,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import OrderButton from "@/components/menu/OrderButton";
 import { getMenuItemById } from "@/lib/api/menu";
@@ -24,6 +25,13 @@ interface MenuDetailsPageProps {
 export default async function MenuDetailsPage({
   params,
 }: MenuDetailsPageProps) {
+  // Check authentication first
+  const session = await getSession();
+
+  if (!session?.user) {
+    redirect("/sign-in");
+  }
+
   const { id } = await params;
 
   if (!/^[0-9a-fA-F]{24}$/.test(id)) {

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useSession, authClient } from "@/lib/auth-client";
 import { uploadMenuItemImage } from "@/lib/api/vendor/add-menu-api";
 import { getMyProfile } from "@/lib/api/profile";
+import Image from "next/image";
 
 interface UserProfile {
   name: string;

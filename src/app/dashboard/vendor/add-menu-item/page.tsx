@@ -1,3 +1,4 @@
+
 "use client";
 
 import { getVendorPremiumById } from "@/lib/api/payment/vendor-premium-api";
@@ -304,31 +305,32 @@ export default function AddMenuItemPage() {
       <div>
         <Link
           href="/dashboard/vendor/my-menu-items"
-          className="mb-3 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-orange-600">
+          className="mb-3 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
+        >
           <ArrowLeft size={16} />
           Back to My Menu Items
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
           Add Menu Item
         </h1>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Add a new delicious pizza to your restaurant menu.
         </p>
       </div>
 
       {/* Subscription Information */}
-      <div className="flex flex-col gap-4 rounded-xl border border-orange-200 bg-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-orange-200 bg-orange-50 p-4 dark:border-orange-900/60 dark:bg-orange-950/20 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-semibold text-gray-900">
+          <p className="font-semibold text-gray-900 dark:text-gray-100">
             Your Current Plan:{" "}
-            <span className="text-orange-600 capitalize">
+            <span className="text-orange-600 capitalize dark:text-orange-400">
               {premiumLoading ? "Loading..." : `${plan} Plan`}
             </span>
           </p>
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {premiumLoading
               ? "Checking your subscription..."
               : isFreePlan
@@ -338,7 +340,7 @@ export default function AddMenuItemPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="flex items-center gap-1 text-sm font-semibold text-gray-700">
+          <h2 className="flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
             Menu Items:{" "}
             {countLoading || premiumLoading ? (
               "Loading..."
@@ -347,7 +349,7 @@ export default function AddMenuItemPage() {
                 {currentItems}
                 {" / "}
                 {isPremium ? (
-                  <span className="inline-flex text-orange-500 items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-orange-500">
                     <Infinity className="h-5 w-5" />
                     Unlimited
                   </span>
@@ -361,7 +363,8 @@ export default function AddMenuItemPage() {
           {isFreePlan && !premiumLoading && (
             <Link
               href="/dashboard/vendor/subscription"
-              className="inline-flex w-fit items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700">
+              className="inline-flex w-fit items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700"
+            >
               Upgrade Plan
             </Link>
           )}
@@ -371,12 +374,13 @@ export default function AddMenuItemPage() {
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
+        className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#211C19] sm:p-7"
+      >
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Pizza Information
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Provide the details of your pizza.
           </p>
         </div>
@@ -384,7 +388,10 @@ export default function AddMenuItemPage() {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {/* Pizza Name */}
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="name"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Pizza Name *
             </label>
 
@@ -396,7 +403,7 @@ export default function AddMenuItemPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-orange-950"
             />
           </div>
 
@@ -404,7 +411,8 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="category"
-              className="text-sm font-medium text-gray-700">
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Pizza Category *
             </label>
 
@@ -414,7 +422,8 @@ export default function AddMenuItemPage() {
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100">
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:focus:ring-orange-950"
+            >
               <option value="">Select pizza category</option>
               <option value="Classic Pizzas">Classic Pizzas</option>
               <option value="Vegetarian Pizzas">Vegetarian Pizzas</option>
@@ -431,7 +440,8 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="price"
-              className="text-sm font-medium text-gray-700">
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Price (৳) *
             </label>
 
@@ -445,7 +455,7 @@ export default function AddMenuItemPage() {
               value={formData.price}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-orange-950"
             />
           </div>
 
@@ -453,7 +463,8 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="location"
-              className="text-sm font-medium text-gray-700">
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Location (Area / City) *
             </label>
 
@@ -465,7 +476,7 @@ export default function AddMenuItemPage() {
               value={formData.location}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-orange-950"
             />
           </div>
         </div>
@@ -474,7 +485,8 @@ export default function AddMenuItemPage() {
         <div className="space-y-2">
           <label
             htmlFor="description"
-            className="text-sm font-medium text-gray-700">
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Description *
           </label>
 
@@ -486,7 +498,7 @@ export default function AddMenuItemPage() {
             value={formData.description}
             onChange={handleChange}
             required
-            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+            className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-orange-950"
           />
         </div>
 
@@ -495,17 +507,21 @@ export default function AddMenuItemPage() {
           <div>
             <label
               htmlFor="imageUrl"
-              className="text-sm font-medium text-gray-700">
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Pizza Image URL *
             </label>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Paste a direct pizza image URL. It will be uploaded to ImgBB.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 rounded-lg border border-gray-300 px-3 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
-            <ImagePlus size={20} className="shrink-0 text-gray-400" />
+          <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 transition focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:focus-within:ring-orange-950">
+            <ImagePlus
+              size={20}
+              className="shrink-0 text-gray-400 dark:text-gray-500"
+            />
 
             <input
               id="imageUrl"
@@ -517,12 +533,12 @@ export default function AddMenuItemPage() {
                 setImageError(false);
               }}
               required
-              className="w-full border-0 py-3 text-sm outline-none"
+              className="w-full border-0 bg-transparent py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-100 dark:placeholder:text-gray-500"
             />
           </div>
 
           {imageUrl && (
-            <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+            <div className="relative w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-[#171412]">
               {!imageError ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -535,7 +551,7 @@ export default function AddMenuItemPage() {
                   className="h-52 w-full object-cover"
                 />
               ) : (
-                <div className="flex h-52 items-center justify-center text-sm text-gray-500">
+                <div className="flex h-52 items-center justify-center text-sm text-gray-500 dark:text-gray-400">
                   Image preview unavailable.
                 </div>
               )}
@@ -544,15 +560,18 @@ export default function AddMenuItemPage() {
         </div>
 
         {/* Approval Notice */}
-        <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-blue-600" />
+        <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/60 dark:bg-blue-950/20">
+          <CheckCircle2
+            size={20}
+            className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400"
+          />
 
           <div>
-            <p className="text-sm font-semibold text-blue-900">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
               Admin Approval Required
             </p>
 
-            <p className="mt-1 text-sm text-blue-700">
+            <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
               Your pizza will remain pending until an admin reviews and approves
               it.
             </p>
@@ -560,17 +579,19 @@ export default function AddMenuItemPage() {
         </div>
 
         {/* Submit Buttons */}
-        <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 dark:border-gray-800 sm:flex-row sm:justify-end">
           <Link
             href="/dashboard/vendor/my-menu-items"
-            className="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+            className="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-[#2A2420]"
+          >
             Cancel
           </Link>
 
           <button
             type="submit"
             disabled={loading || countLoading || premiumLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60">
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />

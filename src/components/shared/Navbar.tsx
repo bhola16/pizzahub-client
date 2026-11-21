@@ -44,6 +44,7 @@ const roleLabels: Record<UserRole, string> = {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme, setTheme } = useTheme();
 
   const { data: session, isPending } = authClient.useSession();
@@ -108,6 +109,26 @@ export default function Navbar() {
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, []);
 
@@ -278,7 +299,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`sticky top-0 z-100 w-full transition-all duration-300 ${
         scrolled
           ? "border-b border-[#E7D8C8] bg-[#FFFCF8]/95 shadow-[0_8px_30px_-15px_rgba(70,45,25,0.25)] backdrop-blur-xl dark:border-[#3C3029] dark:bg-[#191512]/95"
           : "border-b border-[#E7D8C8]/70 bg-[#FFFCF8]/90 backdrop-blur-xl dark:border-[#3C3029]/70 dark:bg-[#191512]/90"
@@ -446,6 +467,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation */}
       <div
+      ref={mobileMenuRef}
         className={`grid overflow-hidden transition-all duration-300 ease-in-out lg:hidden ${
           mobileMenuOpen
             ? "grid-rows-[1fr] opacity-100"
@@ -542,3 +564,5 @@ export default function Navbar() {
     </header>
   );
 }
+
+

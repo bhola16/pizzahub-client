@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { PanelLeft } from "lucide-react";
+import { useState } from "react";
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,8 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#FFF9F3] dark:bg-[#171412]">
-      {/* Dashboard Area */}
-      <div className="relative flex min-h-screen">
-        {/* Sidebar */}
+      <div className="flex min-h-screen">
+        {/* Desktop Sidebar */}
         <div
           className={`hidden shrink-0 transition-all duration-300 lg:block ${
             sidebarOpen ? "w-72" : "w-0"
@@ -40,26 +39,25 @@ export default function DashboardLayout({
         </div>
 
         {/* Main Content */}
-        <div className="min-w-0 flex-1">
-          {/* Toolbar */}
-          <div className="sticky top-0 z-30 flex h-16 items-center border-b border-gray-200 bg-white/95 px-4 backdrop-blur-md dark:border-gray-800 dark:bg-[#171412]/95">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleSidebar}
-              className="border-[#E87932] text-[#E87932] hover:bg-[#E87932] hover:text-white dark:bg-[#211C19]"
-              aria-label="Toggle dashboard sidebar"
-              aria-expanded={sidebarOpen}>
-              <PanelLeft size={20} />
-            </Button>
-          </div>
+        <div className="relative min-w-0 flex-1">
+          {/* Sidebar Toggle */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleSidebar}
+            className="absolute left-4 top-4 z-30 border-[#E87932] bg-white text-[#E87932] hover:bg-[#E87932] hover:text-white dark:bg-[#211C19]"
+            aria-label="Toggle dashboard sidebar"
+            aria-expanded={sidebarOpen}>
+            <PanelLeft size={20} />
+          </Button>
 
-          <main className="w-full p-4 sm:p-6 lg:p-8">
+          {/* Dashboard Content */}
+          <main className="w-full p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-20">
             <div className="mx-auto w-full max-w-7xl">{children}</div>
           </main>
         </div>
 
-        {/* Mobile Sidebar */}
+        {/* Mobile and Tablet Sidebar */}
         <div className="lg:hidden">
           <DashboardSidebar
             role={role}

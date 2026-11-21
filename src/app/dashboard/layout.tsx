@@ -12,7 +12,7 @@ export default async function DashboardRootLayout({
     headers: await headers(),
   });
 
-  if (!session) {
+  if (!session?.user) {
     redirect("/sign-in");
   }
 
