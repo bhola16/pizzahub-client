@@ -86,3 +86,34 @@ export async function addMenuItem(menuItem: {
 
   return result;
 }
+
+
+export async function uploadEditMenuItemImage(
+  imageUrl: string,
+): Promise<string> {
+  if (!IMGBB_API_KEY) {
+    throw new Error("ImgBB API key is missing.");
+  }
+
+  const formData = new FormData();
+  formData.append("image", imageUrl);
+
+  const response = await fetch(
+    `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  const result = await getApiResponse<ImgBBResponse>(response);
+
+  if (!response.ok || !result.success || !result.data?.display_url) {
+    throw new Error(
+      result.error?.message || "Failed to upload image to ImgBB.",
+    );
+  }
+
+  return result.data.display_url;
+}
+

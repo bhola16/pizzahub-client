@@ -1,19 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import {
-  X,
-  Loader2,
-  Save,
-  Image as ImageIcon,
-  MapPin,
-  Tag,
   DollarSign,
   FileText,
+  Image as ImageIcon,
+  Loader2,
+  MapPin,
+  Save,
+  Tag,
   Utensils,
+  X,
 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 import { toast } from "sonner";
+
 import { updateMenuItem } from "@/lib/api/vendor/vendor-menu-api";
+import { uploadEditMenuItemImage } from "@/lib/api/vendor/add-menu-api";
 
 type MenuItem = {
   _id: string;
@@ -33,17 +36,12 @@ type Props = {
 };
 
 const categories = [
-  "Margherita",
-  "Pepperoni",
-  "Cheese",
-  "BBQ Chicken",
-  "Vegetarian",
+  "Classic Pizzas",
+  "Vegetarian Pizzas",
   "Meat Lovers",
-  "Seafood",
-  "Hawaiian",
-  "Spicy",
-  "Specialty",
-  "Other",
+  "Specialty / Gourmet Pizzas",
+  "Sides & Appetizers",
+  "Beverages & Desserts",
 ];
 
 const inputClass =
@@ -59,17 +57,21 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
   const [price, setPrice] = useState(String(item.price));
   const [location, setLocation] = useState(item.location);
   const [imageUrl, setImageUrl] = useState(item.images?.[0] || "");
+
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (loading) return;
+
+    // Validate required fields
     if (
       !name.trim() ||
       !category ||
       !description.trim() ||
-      !price ||
+      !price.trim() ||
       !location.trim() ||
       !imageUrl.trim()
     ) {
@@ -77,30 +79,80 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
       return;
     }
 
-    if (!Number.isFinite(Number(price)) || Number(price) < 1) {
+    // Validate price
+    const numericPrice = Number(price);
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 1) {
       toast.error("Please enter a valid price.");
+      return;
+    }
+
+    // Validate image URL
+    try {
+      const parsedUrl = new URL(imageUrl.trim());
+
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        toast.error("Please enter a valid image URL.");
+        return;
+      }
+    } catch {
+      toast.error("Please enter a valid image URL.");
+      return;
+    }
+
+    if (imageError) {
+      toast.error("Unable to load image. Please enter another URL.");
       return;
     }
 
     try {
       setLoading(true);
 
+      let finalImageUrl = imageUrl.trim();
+
+      // Check whether the image is already hosted on ImgBB
+      const imageHostname = new URL(finalImageUrl).hostname.toLowerCase();
+
+      const isImgBBImage =
+        imageHostname === "ibb.co" ||
+        imageHostname.endsWith(".ibb.co") ||
+        imageHostname === "imgbb.com" ||
+        imageHostname.endsWith(".imgbb.com");
+
+      // Upload external image URL to ImgBB
+      if (!isImgBBImage) {
+        const uploadedUrl = await uploadEditMenuItemImage(finalImageUrl);
+
+        if (!uploadedUrl) {
+          throw new Error("ImgBB image upload failed. Please try again.");
+        }
+
+        finalImageUrl = uploadedUrl;
+      }
+
+      // Update menu item with the ImgBB URL
       await updateMenuItem(item._id, {
         name: name.trim(),
         category,
         description: description.trim(),
-        price: Number(price),
+        price: numericPrice,
         location: location.trim(),
-        images: [imageUrl.trim()],
+        images: [finalImageUrl],
         vendorEmail: item.vendorEmail,
       });
 
-      toast.success("Menu item updated successfully.");
+      toast.success("Menu item updated successfully!", {
+        id: "edit-menu-upload",
+      });
+
       onUpdated();
       onClose();
     } catch (error) {
+      console.error("Update menu item error:", error);
+
       toast.error(
         error instanceof Error ? error.message : "Failed to update menu item.",
+        { id: "edit-menu-upload" },
       );
     } finally {
       setLoading(false);
@@ -110,7 +162,9 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-5"
-      onClick={onClose}>
+      onClick={() => {
+        if (!loading) onClose();
+      }}>
       <div
         role="dialog"
         aria-modal="true"
@@ -130,6 +184,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                 className="text-lg font-bold text-foreground sm:text-xl">
                 Edit Menu Item
               </h2>
+
               <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
                 Update your menu item information.
               </p>
@@ -152,6 +207,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
             <div className="grid gap-6 md:grid-cols-2">
               {/* Left column */}
               <div className="space-y-5">
+                {/* Item Name */}
                 <div>
                   <label htmlFor="item-name" className={labelClass}>
                     <Utensils size={16} className="text-green-600" />
@@ -170,6 +226,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                   />
                 </div>
 
+                {/* Category */}
                 <div>
                   <label htmlFor="item-category" className={labelClass}>
                     <Tag size={16} className="text-green-600" />
@@ -184,6 +241,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                     required
                     disabled={loading}>
                     <option value="">Select pizza category</option>
+
                     {categories.map((itemCategory) => (
                       <option key={itemCategory} value={itemCategory}>
                         {itemCategory}
@@ -192,6 +250,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                   </select>
                 </div>
 
+                {/* Price */}
                 <div>
                   <label htmlFor="item-price" className={labelClass}>
                     <DollarSign size={16} className="text-green-600" />
@@ -202,6 +261,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                     id="item-price"
                     type="number"
                     min="1"
+                    step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="Enter price"
@@ -211,6 +271,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                   />
                 </div>
 
+                {/* Location */}
                 <div>
                   <label htmlFor="item-location" className={labelClass}>
                     <MapPin size={16} className="text-green-600" />
@@ -232,6 +293,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
 
               {/* Right column */}
               <div className="space-y-5">
+                {/* Description */}
                 <div>
                   <label htmlFor="item-description" className={labelClass}>
                     <FileText size={16} className="text-green-600" />
@@ -250,6 +312,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                   />
                 </div>
 
+                {/* Image URL */}
                 <div>
                   <label htmlFor="item-image" className={labelClass}>
                     <ImageIcon size={16} className="text-green-600" />
@@ -269,9 +332,14 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
                     required
                     disabled={loading}
                   />
+
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Paste an image URL. It will be uploaded to ImgBB when you
+                    save your changes.
+                  </p>
                 </div>
 
-                {/* Image preview */}
+                {/* Image Preview */}
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Image Preview
@@ -279,15 +347,19 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
 
                   <div className="relative flex h-44 w-full items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-muted sm:h-48">
                     {imageUrl && !imageError ? (
-                      <img
+                      <Image
                         src={imageUrl}
                         alt="Menu item preview"
+                        width={600}
+                        height={400}
+                        unoptimized
                         onError={() => setImageError(true)}
                         className="h-full w-full object-cover transition duration-300"
                       />
                     ) : (
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <ImageIcon size={32} />
+
                         <span className="text-xs">
                           {imageUrl
                             ? "Unable to load image"
@@ -324,7 +396,7 @@ export default function EditMenuItemModal({ item, onClose, onUpdated }: Props) {
               {loading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Saving Changes...
+                  Uploading & Saving...
                 </>
               ) : (
                 <>

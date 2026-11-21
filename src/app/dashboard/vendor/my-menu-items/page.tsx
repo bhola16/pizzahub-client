@@ -10,11 +10,13 @@ import {
   Search,
   Trash2,
   UtensilsCrossed,
+  X,
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -49,12 +51,21 @@ export default function MyMenuItemsPage() {
   const user = session?.user;
   const vendorEmail = user?.email;
 
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || "",
+  );
+
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "all",
+  );
 
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<MenuItem | null>(null);
@@ -65,6 +76,7 @@ export default function MyMenuItemsPage() {
 
     try {
       setLoading(true);
+
       const data = await getVendorMenuItems(vendorEmail);
       setMenuItems(data);
     } catch {
@@ -81,6 +93,61 @@ export default function MyMenuItemsPage() {
       setLoading(false);
     }
   }, [vendorEmail, isPending, fetchMenuItems]);
+
+  // Synchronize filters when browser Back/Forward changes the URL
+  useEffect(() => {
+    setSearchTerm(searchParams.get("search") || "");
+
+    const status = searchParams.get("status") || "all";
+
+    setStatusFilter(
+      ["all", "approved", "pending", "rejected"].includes(status)
+        ? status
+        : "all",
+    );
+  }, [searchParams]);
+
+  // Update URL search parameters
+  const updateURLParams = (search: string, status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (search.trim()) {
+      params.set("search", search.trim());
+    } else {
+      params.delete("search");
+    }
+
+    if (status !== "all") {
+      params.set("status", status);
+    } else {
+      params.delete("status");
+    }
+
+    const queryString = params.toString();
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+  };
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    updateURLParams(value, statusFilter);
+  };
+
+  // Handle status filter
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    updateURLParams(searchTerm, value);
+  };
+
+  // Clear filters
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    router.replace(pathname, { scroll: false });
+  };
 
   // Update availability
   const handleAvailability = async (item: MenuItem) => {
@@ -119,7 +186,7 @@ export default function MyMenuItemsPage() {
 
   // Filter menu items
   const filteredItems = menuItems.filter((item) => {
-    const search = searchTerm.toLowerCase();
+    const search = searchTerm.trim().toLowerCase();
 
     const matchesSearch =
       item.name.toLowerCase().includes(search) ||
@@ -143,6 +210,8 @@ export default function MyMenuItemsPage() {
   const rejectedCount = menuItems.filter(
     (item) => item.status === "rejected",
   ).length;
+
+  const hasActiveFilters = searchTerm.trim() !== "" || statusFilter !== "all";
 
   // Status styles
   const getStatusClass = (status: MenuItem["status"]) => {
@@ -184,10 +253,12 @@ export default function MyMenuItemsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             My Menu Items
           </h1>
+
           <p className="mt-1 text-sm text-muted-foreground">
             Manage your menu, update availability, and track item reviews.
           </p>
         </div>
+
         <Link
           href="/dashboard/vendor/add-menu-item"
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:scale-[0.98] sm:w-auto">
@@ -207,9 +278,11 @@ export default function MyMenuItemsPage() {
               <UtensilsCrossed className="h-5 w-5 text-muted-foreground" />
             </div>
           </div>
+
           <h2 className="mt-4 text-3xl font-bold text-foreground">
             {menuItems.length}
           </h2>
+
           <p className="mt-1 text-xs text-muted-foreground">
             All submitted items
           </p>
@@ -224,9 +297,11 @@ export default function MyMenuItemsPage() {
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           </div>
+
           <h2 className="mt-4 text-3xl font-bold text-green-600 dark:text-green-400">
             {approvedCount}
           </h2>
+
           <p className="mt-1 text-xs text-muted-foreground">
             Reviewed and approved
           </p>
@@ -239,9 +314,11 @@ export default function MyMenuItemsPage() {
               <Clock3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
+
           <h2 className="mt-4 text-3xl font-bold text-amber-600 dark:text-amber-400">
             {pendingCount}
           </h2>
+
           <p className="mt-1 text-xs text-muted-foreground">
             Waiting for review
           </p>
@@ -256,9 +333,11 @@ export default function MyMenuItemsPage() {
               <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
           </div>
+
           <h2 className="mt-4 text-3xl font-bold text-red-600 dark:text-red-400">
             {rejectedCount}
           </h2>
+
           <p className="mt-1 text-xs text-muted-foreground">
             Requires your attention
           </p>
@@ -274,31 +353,58 @@ export default function MyMenuItemsPage() {
               <h2 className="text-lg font-semibold text-foreground">
                 Menu Overview
               </h2>
+
               <p className="mt-1 text-sm text-muted-foreground">
                 View and manage all your submitted menu items.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
+              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
                 <Input
                   placeholder="Search menu items..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-10 pl-9 sm:w-60"
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="h-10 pl-9 pr-9 sm:w-60"
                 />
+
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                    aria-label="Clear search">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
+              {/* Status Filter */}
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => handleStatusFilter(e.target.value)}
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ring">
                 <option value="all">All Status</option>
                 <option value="approved">Approved</option>
                 <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
               </select>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="h-10 gap-2">
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -328,11 +434,20 @@ export default function MyMenuItemsPage() {
               </p>
 
               {menuItems.length === 0 && (
-                <Button className="mt-5">
-                  <Link href="/dashboard/vendor/add-menu-item">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Your First Item
-                  </Link>
+                <Button
+                  className="mt-5"
+                  render={<Link href="/dashboard/vendor/add-menu-item" />}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Your First Item
+                </Button>
+              )}
+
+              {menuItems.length > 0 && hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  className="mt-5"
+                  onClick={handleClearFilters}>
+                  Clear Filters
                 </Button>
               )}
             </div>
@@ -401,6 +516,7 @@ export default function MyMenuItemsPage() {
                         )}
 
                         {item.isActive ? "Available" : "Unavailable"}
+
                         <span className="text-muted-foreground/70">
                           · Click to change
                         </span>
