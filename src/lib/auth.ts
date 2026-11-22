@@ -14,6 +14,24 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  // user: {
+  //   additionalFields: {
+  //     role: {
+  //       type: "string",
+  //       required: false,
+  //       defaultValue: "customer",
+  //       input: true,
+  //     },
+  //   },
+  // },
+
+  // subscriptionPlan: {
+  //   type: "string",
+  //   required: false,
+  //   defaultValue: "free",
+  //   input: false,
+  // },
+
   user: {
     additionalFields: {
       role: {
@@ -22,13 +40,12 @@ export const auth = betterAuth({
         defaultValue: "customer",
         input: true,
       },
+      subscriptionPlan: {
+        type: "string",
+        required: false,
+        defaultValue: "free",
+        input: false,
+      },
     },
-  },
-
-  subscriptionPlan: {
-    type: "string",
-    required: false,
-    defaultValue: "free",
-    input: false,
   },
 });

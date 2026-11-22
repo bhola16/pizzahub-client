@@ -1,11 +1,11 @@
 
 "use client";
 
-import { getVendorPremiumById } from "@/lib/api/payment/vendor-premium-api";
 import {
   addMenuItem,
   uploadMenuItemImage,
 } from "@/lib/api/vendor/add-menu-api";
+import { getVendorSubscription } from "@/lib/api/vendor/subscription-api";
 import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
@@ -18,15 +18,21 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import type {
+  ChangeEvent,
+  FormEvent,
+} from "react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const totalLimit = Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 3;
+const totalLimit =
+  Number(process.env.NEXT_PUBLIC_UPGRADE_LIMIT) || 3;
 
 export default function AddMenuItemPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
 
   const user = session?.user;
 
@@ -51,26 +57,35 @@ export default function AddMenuItemPage() {
   const plan = isPremium ? "premium" : "free";
   const isFreePlan = !isPremium;
 
-  // Fetch vendor Premium status
+  // Fetch vendor subscription status
   useEffect(() => {
+    if (isPending) return;
+
     if (!user?.id) {
-      setPremiumLoading(true);
+      setPremiumLoading(false);
+      setIsPremium(false);
       return;
     }
 
     let cancelled = false;
 
-    const fetchPremiumStatus = async () => {
+    const fetchSubscription = async () => {
       try {
         setPremiumLoading(true);
 
-        const result = await getVendorPremiumById(user.id);
+        const subscription = await getVendorSubscription();
+
+        const premium =
+          subscription.subscriptionPlan === "premium" &&
+          ["active", "trialing"].includes(
+            subscription.subscriptionStatus,
+          );
 
         if (!cancelled) {
-          setIsPremium(result.premium === true);
+          setIsPremium(premium);
         }
       } catch (error) {
-        console.error("Premium status error:", error);
+        console.error("Subscription status error:", error);
 
         if (!cancelled) {
           setIsPremium(false);
@@ -83,17 +98,20 @@ export default function AddMenuItemPage() {
       }
     };
 
-    fetchPremiumStatus();
+    fetchSubscription();
 
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, isPending]);
 
-  // Fetch vendor's menu item count
+  // Fetch vendor menu item count
   useEffect(() => {
+    if (isPending) return;
+
     if (!user?.email) {
-      setCountLoading(true);
+      setCountLoading(false);
+      setCurrentItems(0);
       return;
     }
 
@@ -105,12 +123,18 @@ export default function AddMenuItemPage() {
 
         const response = await fetch(
           `${API_URL}/menuItems/count/${encodeURIComponent(user.email)}`,
+          {
+            credentials: "include",
+            cache: "no-store",
+          },
         );
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch menu item count.");
+          throw new Error(
+            data.message || "Failed to fetch menu item count.",
+          );
         }
 
         if (!cancelled) {
@@ -138,11 +162,11 @@ export default function AddMenuItemPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.email]);
+  }, [user?.email, isPending]);
 
   // Handle form changes
   const handleChange = (
-    e: React.ChangeEvent<
+    e: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
@@ -155,16 +179,11 @@ export default function AddMenuItemPage() {
   };
 
   // Submit menu item
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!user) {
       toast.error("Please login before adding a menu item.");
-      return;
-    }
-
-    if (!API_URL) {
-      toast.error("API URL is missing. Check your environment variables.");
       return;
     }
 
@@ -242,24 +261,25 @@ export default function AddMenuItemPage() {
         id: "menu-upload",
       });
 
-      const uploadedImageUrl = await uploadMenuItemImage(imageUrl.trim());
+      const uploadedImageUrl = await uploadMenuItemImage(
+        imageUrl.trim(),
+      );
 
       // Save menu item
+      // Vendor identity and subscription are verified by the backend.
       const result = await addMenuItem({
-        ...formData,
         name: formData.name.trim(),
+        category: formData.category,
         description: formData.description.trim(),
         location: formData.location.trim(),
         price: Number(formData.price),
         images: [uploadedImageUrl],
-        vendorName: user.name,
-        vendorEmail: user.email,
-        plan,
       });
 
       if (result.upgradeRequired) {
         toast.error(
-          result.message || "Please upgrade your plan to add more menu items.",
+          result.message ||
+            "Please upgrade your plan to add more menu items.",
           { id: "menu-upload" },
         );
 
@@ -300,7 +320,7 @@ export default function AddMenuItemPage() {
   };
 
   return (
-    <div className=" space-y-2 w-full">
+    <div className="space-y-2 w-full">
       {/* Header */}
       <div>
         <Link
@@ -432,7 +452,9 @@ export default function AddMenuItemPage() {
                 Specialty / Gourmet Pizzas
               </option>
               <option value="Sides & Appetizers">Sides & Appetizers</option>
-              <option value="Beverages & Desserts">Beverages & Desserts</option>
+              <option value="Beverages & Desserts">
+                Beverages & Desserts
+              </option>
             </select>
           </div>
 
@@ -546,7 +568,9 @@ export default function AddMenuItemPage() {
                   alt="Pizza preview"
                   onError={() => {
                     setImageError(true);
-                    toast.error("Unable to load image. Please check the URL.");
+                    toast.error(
+                      "Unable to load image. Please check the URL.",
+                    );
                   }}
                   className="h-52 w-full object-cover"
                 />
@@ -572,8 +596,8 @@ export default function AddMenuItemPage() {
             </p>
 
             <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
-              Your pizza will remain pending until an admin reviews and approves
-              it.
+              Your pizza will remain pending until an admin reviews and
+              approves it.
             </p>
           </div>
         </div>
@@ -589,7 +613,12 @@ export default function AddMenuItemPage() {
 
           <button
             type="submit"
-            disabled={loading || countLoading || premiumLoading}
+            disabled={
+              loading ||
+              countLoading ||
+              premiumLoading ||
+              isPending
+            }
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (

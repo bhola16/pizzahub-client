@@ -1,12 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface VendorDashboardData {
   totalMenuItems: number;
   activeMenuItems: number;
   pendingOrders: number;
   acceptedOrders: number;
-  subscriptionPlan?: string;
-  premium?: boolean;
 }
 
 export async function getVendorDashboard(
@@ -15,6 +13,8 @@ export async function getVendorDashboard(
   const response = await fetch(
     `${API_URL}/vendor-dashboard/${encodeURIComponent(vendorEmail)}`,
     {
+      method: "GET",
+      credentials: "include",
       cache: "no-store",
     },
   );

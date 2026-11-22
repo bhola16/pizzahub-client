@@ -64,15 +64,13 @@ export async function addMenuItem(menuItem: {
   price: number;
   location: string;
   images: string[];
-  vendorName: string;
-  vendorEmail: string;
-  plan: string;
 }): Promise<AddMenuItemResponse> {
   const response = await fetch(`${SERVER_URL}/menuItems`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify(menuItem),
   });
 

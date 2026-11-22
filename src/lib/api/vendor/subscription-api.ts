@@ -1,82 +1,58 @@
-const SERVER_URL =  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export interface VendorSubscription {
   subscriptionPlan: "free" | "premium";
-  subscriptionStatus?: string;
-}
-
-interface VendorDashboardResponse {
-  success?: boolean;
-  subscriptionPlan?: string;
-  subscriptionStatus?: string;
-  message?: string;
-}
-
-interface CheckoutResponse {
-  url?: string;
-  message?: string;
-}
-
-async function getApiResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new Error('Invalid server response.');
-  }
+  subscriptionStatus: string;
 }
 
 // Get vendor subscription
-export async function getVendorSubscription(
-  vendorEmail: string,
-): Promise<VendorSubscription> {
-  let response: Response;
+export async function getVendorSubscription(): Promise<VendorSubscription> {
+  const response = await fetch(
+    `${API_URL}/api/payments/subscription`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    }
+  );
 
-  try {
-    response = await fetch(
-      `${SERVER_URL}/vendor-dashboard/${encodeURIComponent(vendorEmail)}`,
-      { cache: "no-store" },
-    );
-  } catch {
-    throw new Error(
-      `Cannot connect to backend at ${SERVER_URL}. Check whether your Express server is running.`,
-    );
-  }
-
-  const result = await getApiResponse<VendorDashboardResponse>(response);
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.message || "Failed to fetch subscription.");
+    throw new Error(
+      data.message || "Failed to load subscription"
+    );
   }
 
-  return {
-    subscriptionPlan:
-      result.subscriptionPlan === "premium" ? "premium" : "free",
-    subscriptionStatus: result.subscriptionStatus || "inactive",
-  };
+  return data.subscription;
 }
 
-// Create Stripe Checkout session
-export async function createSubscriptionCheckout(
-  vendorEmail: string,
-): Promise<string> {
-  const response = await fetch(`${SERVER_URL}/subscriptions/checkout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ vendorEmail }),
-  });
+// Create Stripe Checkout Session
+export async function createCheckoutSession(): Promise<string> {
+  const response = await fetch(
+    `${API_URL}/api/payments/create-checkout-session`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
-  const result = await getApiResponse<CheckoutResponse>(response);
+  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to start checkout.");
+    throw new Error(
+      data.message || "Unable to create checkout session"
+    );
   }
 
-  if (!result.url) {
-    throw new Error("Stripe checkout URL was not returned.");
+  if (!data.url) {
+    throw new Error("Stripe Checkout URL was not returned");
   }
 
-  return result.url;
+  return data.url;
 }
