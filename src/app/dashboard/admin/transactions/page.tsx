@@ -511,7 +511,7 @@ const AdminTransactionsPage = () => {
 
                       <td className="px-5 py-4">
                         <span
-                          title={transaction.payment_intent}
+                          title={transaction.payment_intent ?? undefined}
                           className="block max-w-[170px] truncate font-mono text-xs text-muted-foreground">
                           {transaction.payment_intent || "N/A"}
                         </span>
