@@ -17,7 +17,6 @@ import {
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -27,6 +26,7 @@ import {
   type Order,
 } from "@/lib/api/orders";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
 type VendorOrderStatus = "accepted" | "rejected";
 type OrderFilter = "all" | "pending" | "accepted" | "rejected";
@@ -218,18 +218,19 @@ export default function CustomerOrdersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFF9F3] py-2 text-[#30231D] dark:bg-[#171412] dark:text-white">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <main className="w-full bg-[#FFF9F3]  space-y-2 text-[#30231D] dark:bg-[#171412] dark:text-white">
+      {" "}
+      <div className="w-full">
         {/* Page Header */}
-        <div className="mb-5">
+        <div className="mb-5 space-y-3">
           <Link
             href="/dashboard/vendor"
-            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
+            className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
             <ArrowLeft size={18} />
             Back to Dashboard
           </Link>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h1 className="text-3xl font-bold sm:text-4xl">
                 Customer Orders
@@ -244,7 +245,7 @@ export default function CustomerOrdersPage() {
               type="button"
               onClick={fetchOrders}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold transition hover:bg-muted disabled:opacity-60">
+              className="inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold transition hover:bg-muted disabled:opacity-60">
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               Refresh
             </button>

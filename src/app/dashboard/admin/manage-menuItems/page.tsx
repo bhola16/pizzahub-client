@@ -21,6 +21,7 @@ import {
 } from "@/lib/api/admin/manageMenuItems-api";
 import { useSession } from "@/lib/auth-client";
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronDown,
@@ -235,6 +236,18 @@ const AdminManageMenuItemsContent = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      const data = await getAdminMenuItems();
+      setItems(data);
+    } catch (error) {
+      console.error("Failed to refresh menu items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pendingCount = items.filter((item) => item.status === "pending").length;
 
   const approvedCount = items.filter(
@@ -268,21 +281,40 @@ const AdminManageMenuItemsContent = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 text-foreground md:p-6">
+    <div className="space-y-2 p- text-foreground">
       {/* Header */}
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
+          <Link
+            href="/dashboard/admin"
+            className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
+            <ArrowLeft size={18} />
+            Back to Dashboard
+          </Link>
+
           <h1 className="text-2xl font-bold text-foreground">
             Manage Menu Items
           </h1>
+
           <p className="mt-1 text-sm text-muted-foreground">
             Review, manage, and control submitted menu items.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-          <Package className="h-4 w-4 text-green-600" />
-          {items.length} Menu Items
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+            <Package className="h-4 w-4 text-green-600" />
+            {items.length} Menu Items
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
         </div>
       </div>
 

@@ -6,18 +6,21 @@ import {
 } from "@/lib/api/admin/transactions-api";
 import {
   ArrowDownUp,
+  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   Clock3,
   CreditCard,
   DollarSign,
   Loader2,
+  RefreshCw,
   Search,
   X,
   XCircle,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const formatDate = (date: string) => {
@@ -205,23 +208,60 @@ const AdminTransactionsPage = () => {
     };
   }, [transactions]);
 
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getAdminTransactions(
+        searchTerm,
+        planFilter,
+        paymentFilter,
+      );
+
+      setTransactions(data);
+    } catch (error) {
+      console.error("Failed to refresh transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const hasFilters =
     searchTerm.trim() !== "" || planFilter !== "all" || paymentFilter !== "all";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
+          <Link
+            href="/dashboard/admin"
+            className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
+            <ArrowLeft size={18} />
+            Back to Dashboard
+          </Link>
+
           <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+
           <p className="mt-1 text-sm text-muted-foreground">
             View and monitor all vendor subscription payments.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-          <CreditCard className="h-4 w-4" />
-          Read-only records
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+            <CreditCard className="h-4 w-4" />
+            Read-only records
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
         </div>
       </div>
 

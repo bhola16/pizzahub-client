@@ -33,7 +33,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto max-w-5xl space-y-2 ">
       <div>
         <Link
           href="/dashboard/vendor/subscription"

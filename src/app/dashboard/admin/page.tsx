@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Users,
-  Store,
-  UserRound,
-  UtensilsCrossed,
-  Clock,
-  CreditCard,
-  RefreshCw,
-} from "lucide-react";
-import { toast } from "sonner";
 import {
   getAdminDashboardStats,
   type AdminDashboardStats,
 } from "@/lib/api/admin/dashboard-api";
+import {
+  Clock,
+  CreditCard,
+  RefreshCw,
+  Store,
+  TrendingUp,
+  UserRound,
+  Users,
+  UtensilsCrossed,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
@@ -92,12 +93,17 @@ const AdminDashboardPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+            <TrendingUp className="h-4 w-4" />
+            Admin Dashboard
+          </div>
+
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Dashboard Overview
+            Overview
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Monitor your PizzaHub platform at a glance.

@@ -231,13 +231,13 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFF9F3] py-10 text-[#30231D] dark:bg-[#171412] dark:text-white">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#FFF9F3] text-[#30231D] dark:bg-[#171412] dark:text-white">
+      <div className="mx-auto max-w-6xl px-2 sm:px-4 lg:px-6">
         {/* Page Header */}
-        <div className="mb-8">
+        <div className="mb-3">
           <Link
             href="/dashboard/customer"
-            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
+            className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
             <ArrowLeft size={18} />
             Back to Dashboard
           </Link>
@@ -285,7 +285,7 @@ export default function MyOrdersPage() {
         ) : (
           <>
             {/* Order Filters */}
-            <div className="mb-5 flex flex-wrap gap-2">
+            <div className="mb-3 flex flex-wrap gap-2">
               {filters.map((filter) => {
                 const count = getFilterCount(filter.value);
                 const isActive = activeFilter === filter.value;

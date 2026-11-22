@@ -27,7 +27,7 @@ export default function DashboardLayout({
         {/* Desktop Sidebar */}
         <div
           className={`hidden shrink-0 transition-all duration-300 lg:block ${
-            sidebarOpen ? "w-72" : "w-0"
+            sidebarOpen ? "w-66" : "w-0"
           }`}>
           <div className="sticky top-0 h-screen overflow-hidden">
             <DashboardSidebar
@@ -40,20 +40,20 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <div className="relative min-w-0 flex-1">
-          {/* Sidebar Toggle */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleSidebar}
-            className="absolute left-4 top-4 z-30 border-[#E87932] bg-white text-[#E87932] hover:bg-[#E87932] hover:text-white dark:bg-[#211C19]"
-            aria-label="Toggle dashboard sidebar"
-            aria-expanded={sidebarOpen}>
-            <PanelLeft size={20} />
-          </Button>
-
           {/* Dashboard Content */}
-          <main className="w-full p-4 pt-20 sm:p-6 sm:pt-20 lg:p-8 lg:pt-20">
-            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          <main className="w-full p-4 pt-4 sm:p-6 sm:pt-6 lg:p-8 lg:pt-6">
+            {/* Sidebar Toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleSidebar}
+              className="absolute left-4 top-4 z-30 border-[#E87932] bg-white text-[#E87932] hover:bg-[#E87932] hover:text-white dark:bg-[#211C19]"
+              aria-label="Toggle dashboard sidebar"
+              aria-expanded={sidebarOpen}>
+              <PanelLeft size={20} />
+            </Button>
+
+            <div className="mx-auto pl-10 w-full max-w-6xl">{children}</div>
           </main>
         </div>
 

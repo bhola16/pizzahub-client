@@ -1,11 +1,12 @@
-
 "use client";
 
 import { useSession } from "@/lib/auth-client";
 import {
+  ArrowLeft,
   CalendarDays,
   Loader2,
   Mail,
+  RefreshCw,
   Search,
   ShieldBan,
   ShieldCheck,
@@ -24,6 +25,7 @@ import {
   getAdminUsers,
   unblockAdminUser,
 } from "@/lib/api/admin/manageUsers-api";
+import Link from "next/link";
 
 export default function ManageUsersPage() {
   const { data: session, isPending } = useSession();
@@ -73,9 +75,7 @@ export default function ManageUsersPage() {
       } catch (error) {
         if (currentRequest === requestId.current) {
           toast.error(
-            error instanceof Error
-              ? error.message
-              : "Failed to fetch users.",
+            error instanceof Error ? error.message : "Failed to fetch users.",
           );
         }
       } finally {
@@ -114,8 +114,7 @@ export default function ManageUsersPage() {
         ? `${window.location.pathname}?${query}`
         : window.location.pathname;
 
-      const currentUrl =
-        window.location.pathname + window.location.search;
+      const currentUrl = window.location.pathname + window.location.search;
 
       if (newUrl !== currentUrl) {
         window.history.replaceState(null, "", newUrl);
@@ -124,6 +123,18 @@ export default function ManageUsersPage() {
 
     return () => clearTimeout(timer);
   }, [search, role]);
+
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      const data = await getAdminUsers(search.trim(), role);
+      setUsers(data);
+    } catch (error) {
+      console.error("Failed to refresh users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Block / Unblock user
   const handleBlockToggle = async (user: AdminUser) => {
@@ -185,14 +196,32 @@ export default function ManageUsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Manage Users
-        </h1>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <Link
+            href="/dashboard/admin"
+            className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-orange-500">
+            <ArrowLeft size={18} />
+            Back to Dashboard
+          </Link>
 
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          View, search, and manage registered users.
-        </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Manage Users
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            View, search, and manage registered users.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={loading}
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60 sm:self-center">
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
       {/* Statistics */}
@@ -276,8 +305,7 @@ export default function ManageUsersPage() {
                 type="button"
                 onClick={() => setSearch("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-red-500"
-                aria-label="Clear search"
-              >
+                aria-label="Clear search">
                 <X size={17} />
               </button>
             )}
@@ -287,8 +315,7 @@ export default function ManageUsersPage() {
           <select
             value={role}
             onChange={(event) => setRole(event.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-green-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-          >
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-green-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
             <option value="all">All Roles</option>
             <option value="admin">Admin</option>
             <option value="vendor">Vendor</option>
@@ -313,8 +340,7 @@ export default function ManageUsersPage() {
               {users.map((user) => (
                 <tr
                   key={user._id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   {/* User */}
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
@@ -370,8 +396,7 @@ export default function ManageUsersPage() {
                         user.isBlocked
                           ? "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-300"
                           : "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                      }`}
-                    >
+                      }`}>
                       {user.isBlocked ? "Blocked" : "Active"}
                     </span>
                   </td>
@@ -390,8 +415,7 @@ export default function ManageUsersPage() {
                           user.isBlocked
                             ? "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-900"
                             : "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
-                        }`}
-                      >
+                        }`}>
                         {updatingId === user._id ? (
                           <Loader2 size={15} className="animate-spin" />
                         ) : user.isBlocked ? (
@@ -409,8 +433,7 @@ export default function ManageUsersPage() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-12 text-center text-gray-500 dark:text-gray-400"
-                  >
+                    className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                     No users found.
                   </td>
                 </tr>

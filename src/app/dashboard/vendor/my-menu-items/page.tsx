@@ -246,7 +246,7 @@ export default function MyMenuItemsPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-2">
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
