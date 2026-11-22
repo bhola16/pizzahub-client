@@ -251,6 +251,7 @@ export default async function MenuDetailsPage({
                 status={item.status}
                 isActive={item.isActive}
                 vendorEmail={item.vendorEmail}
+                price={item.price}
               />
             </div>
 

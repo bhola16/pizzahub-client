@@ -1,11 +1,18 @@
+
 "use client";
 
 import { CheckCircle, Loader2, ShoppingBag, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import { cancelCustomerOrder, placeOrder, checkExistingOrder } from "@/lib/api/orders";
+import {
+  cancelCustomerOrder,
+  getCustomerOrders,
+  placeOrder,
+  type Order,
+} from "@/lib/api/orders";
+
 import { authClient } from "@/lib/auth-client";
 
 import {
@@ -31,11 +38,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import DemoPaymentPopover from "./DemoPaymentPopover";
+
 interface OrderButtonProps {
   itemId: string;
   status: string;
   isActive: boolean;
   vendorEmail: string;
+  price: number;
 }
 
 type SessionUser = {
@@ -49,6 +59,7 @@ export default function OrderButton({
   status,
   isActive,
   vendorEmail,
+  price,
 }: OrderButtonProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -56,13 +67,14 @@ export default function OrderButton({
   const user = session?.user as SessionUser | undefined;
 
   const [loading, setLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   const [alreadyOrdered, setAlreadyOrdered] = useState(false);
   const [existingOrderId, setExistingOrderId] = useState("");
-  const [orderStatus, setOrderStatus] = useState<
-    "pending" | "accepted" | "rejected" | "cancelled" | undefined
-  >();
+  const [orderStatus, setOrderStatus] = useState<Order["status"]>();
 
   const [showForm, setShowForm] = useState(false);
+  const [showPaymentPopover, setShowPaymentPopover] = useState(false);
 
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -78,8 +90,54 @@ export default function OrderButton({
 
   const minDate = getLocalDate(new Date());
 
+  // Restore an existing order from the database.
+  useEffect(() => {
+    if (isPending || !user?.email || user.role !== "customer") return;
+
+    let isMounted = true;
+
+    const loadExistingOrder = async () => {
+      try {
+        const orders = await getCustomerOrders(user.email!);
+
+        if (!isMounted) return;
+
+        const existingOrder = orders
+          .filter(
+            (order) =>
+              order.itemId === itemId &&
+              (order.status === "pending" ||
+                order.status === "accepted"),
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime(),
+          )[0];
+
+        if (existingOrder) {
+          setAlreadyOrdered(true);
+          setExistingOrderId(existingOrder.id);
+          setOrderStatus(existingOrder.status);
+        } else {
+          setAlreadyOrdered(false);
+          setExistingOrderId("");
+          setOrderStatus(undefined);
+        }
+      } catch (error) {
+        console.error("Failed to restore existing order:", error);
+      }
+    };
+
+    loadExistingOrder();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [itemId, user?.email, user?.role, isPending]);
+
   const handleOrder = () => {
-    if (isPending || loading) return;
+    if (isPending || loading || paymentLoading) return;
 
     if (!session?.user) {
       router.push(
@@ -120,31 +178,9 @@ export default function OrderButton({
     setShowForm(true);
   };
 
-  const handleCancelOrder = async () => {
-    if (!user?.email || !existingOrderId || orderStatus !== "pending") {
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      await cancelCustomerOrder(existingOrderId, user.email);
-
-      setAlreadyOrdered(false);
-      setExistingOrderId("");
-      setOrderStatus(undefined);
-
-      toast.success("Your order has been cancelled.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to cancel your order.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmitOrder = async (event: FormEvent<HTMLFormElement>) => {
+  // Validate delivery details and open payment.
+  // IMPORTANT: This function does NOT save an order.
+  const handleSubmitOrder = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!user?.email || !user.name) {
@@ -162,8 +198,19 @@ export default function OrderButton({
       return;
     }
 
+    setShowForm(false);
+    setShowPaymentPopover(true);
+  };
+
+  // Save the order ONLY after the customer confirms demo payment.
+  const handleConfirmPayment = async () => {
+    if (!user?.email || !user.name) {
+      toast.error("Your customer information could not be found.");
+      return;
+    }
+
     try {
-      setLoading(true);
+      setPaymentLoading(true);
 
       const result = await placeOrder({
         itemId,
@@ -175,30 +222,85 @@ export default function OrderButton({
       });
 
       if (result.alreadyOrdered) {
-        toast.info(
-          result.message ||
-            "You already have an active order for this delivery date.",
+        const orders = await getCustomerOrders(user.email);
+
+        const existingOrder = orders.find(
+          (order) =>
+            order.itemId === itemId &&
+            (order.status === "pending" ||
+              order.status === "accepted"),
         );
+
+        if (existingOrder) {
+          setAlreadyOrdered(true);
+          setExistingOrderId(existingOrder.id);
+          setOrderStatus(existingOrder.status);
+        }
+
+        setShowPaymentPopover(false);
+
+        toast.info(
+          result.message || "You already have an active order.",
+        );
+
         return;
       }
 
+      const savedOrderId = result.data?.id;
+
+      if (!savedOrderId) {
+        throw new Error(
+          "The server did not return the saved order ID. Please check your orders.",
+        );
+      }
+
+      // Update the button only after the backend confirms the order.
       setAlreadyOrdered(true);
-      setExistingOrderId(result.data?.id || "");
+      setExistingOrderId(savedOrderId);
       setOrderStatus("pending");
 
-      setShowForm(false);
+      setShowPaymentPopover(false);
+
       setDeliveryDate("");
       setDeliveryAddress("");
       setCustomerMessage("");
 
-      toast.success("Your order has been placed successfully!");
+      toast.success("Payment confirmed! Your order has been placed.");
     } catch (error) {
-      console.error("Order failed:", error);
+      console.error("Order/payment confirmation failed:", error);
 
       toast.error(
         error instanceof Error
           ? error.message
-          : "Something went wrong. Please try again.",
+          : "Failed to place your order. Please try again.",
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  // This function is only for cancelling an already saved order.
+  const handleCancelOrder = async () => {
+    if (!user?.email || !existingOrderId || orderStatus !== "pending") {
+      toast.error("Unable to find your pending order.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await cancelCustomerOrder(existingOrderId, user.email);
+
+      setAlreadyOrdered(false);
+      setExistingOrderId("");
+      setOrderStatus(undefined);
+
+      toast.success("Your order has been cancelled.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to cancel your order.",
       );
     } finally {
       setLoading(false);
@@ -208,126 +310,127 @@ export default function OrderButton({
   const buttonDisabled =
     isPending ||
     loading ||
+    paymentLoading ||
     (!alreadyOrdered && (status !== "approved" || !isActive)) ||
     (alreadyOrdered && orderStatus !== "pending");
 
-
-
-    useEffect(() => {
-      if (isPending || !user?.email || user.role !== "customer") return;
-
-      let isMounted = true;
-
-      const checkOrder = async () => {
-        try {
-          const result = await checkExistingOrder(itemId, user.email!, "");
-
-          if (!isMounted) return;
-
-          setAlreadyOrdered(result.alreadyOrdered);
-          setExistingOrderId(result.orderId || "");
-          setOrderStatus(result.status);
-        } catch (error) {
-          console.error("Failed to check existing order:", error);
-        }
-      };
-
-      checkOrder();
-
-      return () => {
-        isMounted = false;
-      };
-    }, [itemId, user?.email, user?.role, isPending]);
-
   return (
     <>
-      {/* Order / Cancel Button */}
-      {alreadyOrdered && orderStatus === "pending" ? (
-        <AlertDialog>
-          <AlertDialogTrigger
-            render={
-              <Button
-                type="button"
-                disabled={buttonDisabled}
-                className="flex w-full items-center justify-center text-md gap-2 rounded-xl bg-red-500 px-6 py-8 font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70">
-                {loading ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <XCircle size={20} />
-                )}
-                {loading ? "Please wait..." : "Cancel Order"}
-              </Button>
-            }
-          />
+      {/* Order / Cancel Order button */}
+      <div>
+        {alreadyOrdered && orderStatus === "pending" ? (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  type="button"
+                  disabled={buttonDisabled}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 px-6 py-8 text-md font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {loading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <XCircle size={20} />
+                  )}
 
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel Your Order?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to cancel this order? This action cannot
-                be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+                  {loading ? "Please wait..." : "Cancel Order"}
+                </Button>
+              }
+            />
 
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={loading}>
-                Keep Order
-              </AlertDialogCancel>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Cancel Your Order?
+                </AlertDialogTitle>
 
-              <AlertDialogAction
-                disabled={loading}
-                onClick={(event) => {
-                  event.preventDefault();
-                  handleCancelOrder();
-                }}
-                className="bg-red-500 text-white hover:bg-red-600">
-                {loading && <Loader2 size={16} className="mr-2 animate-spin" />}
-                {loading ? "Cancelling..." : "Yes, Cancel Order"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ) : (
-        <button
-          type="button"
-          onClick={handleOrder}
-          disabled={buttonDisabled}
-          className={`flex w-full items-center text-md justify-center gap-2 rounded-xl px-6 py-4 font-semibold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-70 ${
-            alreadyOrdered
-              ? "bg-green-600 shadow-green-500/20"
-              : "bg-orange-500 shadow-orange-500/20 hover:bg-orange-600"
-          }`}>
-          {loading || isPending ? (
-            <Loader2 size={20} className="animate-spin" />
-          ) : alreadyOrdered ? (
-            <CheckCircle size={20} />
-          ) : (
-            <ShoppingBag size={20} />
-          )}
+                <AlertDialogDescription>
+                  Are you sure you want to cancel this order? This action
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
 
-          {loading
-            ? "Please wait..."
-            : isPending
-              ? "Checking..."
-              : alreadyOrdered
-                ? "Already Ordered"
-                : status !== "approved" || !isActive
-                  ? "Unavailable"
-                  : "Order Now"}
-        </button>
-      )}
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={loading}>
+                  Keep Order
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  disabled={loading}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleCancelOrder();
+                  }}
+                  className="bg-red-500 text-white hover:bg-red-600"
+                >
+                  {loading && (
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                  )}
+
+                  {loading ? "Cancelling..." : "Yes, Cancel Order"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <button
+            type="button"
+            onClick={handleOrder}
+            disabled={buttonDisabled}
+            className={`flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-md font-semibold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-70 ${
+              alreadyOrdered
+                ? "bg-green-600 shadow-green-500/20"
+                : "bg-orange-500 shadow-orange-500/20 hover:bg-orange-600"
+            }`}
+          >
+            {loading || isPending || paymentLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : alreadyOrdered ? (
+              <CheckCircle size={20} />
+            ) : (
+              <ShoppingBag size={20} />
+            )}
+
+            {loading || paymentLoading
+              ? "Please wait..."
+              : isPending
+                ? "Checking..."
+                : alreadyOrdered
+                  ? "Already Ordered"
+                  : status !== "approved" || !isActive
+                    ? "Unavailable"
+                    : "Order Now"}
+          </button>
+        )}
+      </div>
+
+      {/* Payment modal: order is NOT saved until confirmation. */}
+      <DemoPaymentPopover
+  open={showPaymentPopover}
+  amount={price}
+  customerName={user?.name || "Customer"}
+  loading={paymentLoading}
+  onClose={() => {
+    if (!paymentLoading) {
+      setShowPaymentPopover(false);
+    }
+  }}
+  onConfirm={handleConfirmPayment}
+/>
 
       {/* Delivery Information Dialog */}
       <Dialog
         open={showForm}
         onOpenChange={(open) => {
-          if (!loading) setShowForm(open);
-        }}>
+          if (!paymentLoading) setShowForm(open);
+        }}
+      >
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Delivery Information</DialogTitle>
+
             <DialogDescription>
-              Provide your delivery details to place your order.
+              Provide your delivery details before continuing to payment.
             </DialogDescription>
           </DialogHeader>
 
@@ -336,6 +439,7 @@ export default function OrderButton({
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Customer Name
               </label>
+
               <input
                 value={user?.name || ""}
                 disabled
@@ -347,6 +451,7 @@ export default function OrderButton({
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Delivery Date
               </label>
+
               <input
                 type="date"
                 min={minDate}
@@ -361,6 +466,7 @@ export default function OrderButton({
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Delivery Address
               </label>
+
               <textarea
                 value={deliveryAddress}
                 onChange={(event) => setDeliveryAddress(event.target.value)}
@@ -378,6 +484,7 @@ export default function OrderButton({
                   (Optional)
                 </span>
               </label>
+
               <textarea
                 value={customerMessage}
                 onChange={(event) => setCustomerMessage(event.target.value)}
@@ -391,18 +498,17 @@ export default function OrderButton({
               <Button
                 type="button"
                 variant="outline"
-                disabled={loading}
                 onClick={() => setShowForm(false)}
-                className="flex-1">
+                className="flex-1"
+              >
                 Cancel
               </Button>
 
               <Button
                 type="submit"
-                disabled={loading}
-                className="flex-1 bg-orange-500 text-white hover:bg-orange-600">
-                {loading && <Loader2 size={18} className="animate-spin" />}
-                {loading ? "Placing..." : "Confirm Order"}
+                className="flex-1 bg-orange-500 text-white hover:bg-orange-600"
+              >
+                Continue to Payment
               </Button>
             </DialogFooter>
           </form>

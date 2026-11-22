@@ -1,4 +1,7 @@
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+const SERVER_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
 
 export interface AdminTransaction {
   _id: string;
@@ -11,7 +14,7 @@ export interface AdminTransaction {
   currency: string;
   status: string;
   payment_status: string;
-  payment_intent: string;
+  payment_intent: string | null;
   payment_date: string;
 }
 
@@ -35,15 +38,32 @@ export const getAdminTransactions = async (
     params.set("paymentStatus", paymentStatus);
   }
 
-  const response = await fetch(
-    `${SERVER_URL}/admin/transactions?${params.toString()}`,
-  );
+  const url = `${SERVER_URL}/admin/transactions?${params.toString()}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  const contentType = response.headers.get("content-type");
+
+  if (!contentType?.includes("application/json")) {
+    throw new Error(
+      `Invalid backend response. HTTP ${response.status}`,
+    );
+  }
 
   const result: TransactionsResponse = await response.json();
 
   if (!response.ok || !result.success) {
-    throw new Error(result.message || "Failed to fetch transactions.");
+    throw new Error(
+      result.message || `Failed to fetch transactions. HTTP ${response.status}`,
+    );
   }
 
-  return result.data;
+  return result.data || [];
 };

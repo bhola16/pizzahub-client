@@ -1,3 +1,4 @@
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface Order {
@@ -19,11 +20,16 @@ export interface Order {
   updatedAt?: string;
 }
 
+type RawOrder = Omit<Order, "id"> & {
+  id?: string;
+  _id?: string;
+};
+
 interface OrderResponse {
   success: boolean;
   alreadyOrdered?: boolean;
   message: string;
-  data?: Order;
+  data?: RawOrder | Order;
 }
 
 async function getApiResponse<T>(response: Response): Promise<T> {
@@ -44,7 +50,16 @@ async function getApiResponse<T>(response: Response): Promise<T> {
   }
 }
 
-// Check existing active order for the same delivery date
+function normalizeOrder(order: RawOrder | Order): Order {
+  const id = order.id || ("_id" in order ? order._id : undefined);
+
+  return {
+    ...order,
+    id: id || "",
+  } as Order;
+}
+
+// Check an existing order for a specific delivery date
 export async function checkExistingOrder(
   itemId: string,
   customerEmail: string,
@@ -56,11 +71,11 @@ export async function checkExistingOrder(
   status?: Order["status"];
   message?: string;
 }> {
-  const params = new URLSearchParams({
-    itemId,
-    customerEmail,
-    deliveryDate,
-  });
+  const params = new URLSearchParams({ itemId, customerEmail });
+
+  if (deliveryDate) {
+    params.set("deliveryDate", deliveryDate);
+  }
 
   const response = await fetch(
     `${SERVER_URL}/orders/check?${params.toString()}`,
@@ -82,7 +97,7 @@ export async function checkExistingOrder(
   return result;
 }
 
-// Place order
+// Place an order in the database
 export async function placeOrder(data: {
   itemId: string;
   customerName: string;
@@ -99,15 +114,11 @@ export async function placeOrder(data: {
     body: JSON.stringify(data),
   });
 
-  // console.log("Order data:", data);
-  // console.log("Delivery date:", data.deliveryDate);
-
   const result = await getApiResponse<OrderResponse>(response);
 
   if (!response.ok) {
     console.error("Order API error:", {
       status: response.status,
-      statusText: response.statusText,
       body: result,
       submittedData: data,
     });
@@ -119,6 +130,10 @@ export async function placeOrder(data: {
     throw new Error(
       result.message || `Failed to place order (${response.status}).`,
     );
+  }
+
+  if (result.data) {
+    result.data = normalizeOrder(result.data);
   }
 
   return result;
@@ -133,13 +148,13 @@ export async function getCustomerOrders(
     { cache: "no-store" },
   );
 
-  const result = await getApiResponse<Order[]>(response);
+  const result = await getApiResponse<RawOrder[]>(response);
 
   if (!response.ok) {
     throw new Error("Failed to fetch customer orders.");
   }
 
-  return result;
+  return result.map(normalizeOrder);
 }
 
 // Cancel customer's pending order
@@ -158,7 +173,7 @@ export async function cancelCustomerOrder(
   const result = await getApiResponse<OrderResponse>(response);
 
   if (!response.ok) {
-    throw new Error(result.message || "Failed to withdraw order.");
+    throw new Error(result.message || "Failed to cancel order.");
   }
 
   return result;
@@ -171,13 +186,13 @@ export async function getVendorOrders(vendorEmail: string): Promise<Order[]> {
     { cache: "no-store" },
   );
 
-  const result = await getApiResponse<Order[]>(response);
+  const result = await getApiResponse<RawOrder[]>(response);
 
   if (!response.ok) {
     throw new Error("Failed to fetch vendor orders.");
   }
 
-  return result;
+  return result.map(normalizeOrder);
 }
 
 // Vendor accepts or rejects an order
