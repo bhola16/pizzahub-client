@@ -99,6 +99,9 @@ export async function placeOrder(data: {
     body: JSON.stringify(data),
   });
 
+  // console.log("Order data:", data);
+  // console.log("Delivery date:", data.deliveryDate);
+
   const result = await getApiResponse<OrderResponse>(response);
 
   if (!response.ok) {

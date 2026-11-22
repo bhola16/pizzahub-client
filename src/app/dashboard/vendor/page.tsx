@@ -1,31 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
-  UtensilsCrossed,
-  ShoppingBag,
-  Clock3,
-  CheckCircle2,
-  Crown,
-  Loader2,
-  RefreshCw,
-  TrendingUp,
-  Zap,
-  Star,
-  Infinity,
-  ShieldCheck,
   ArrowRight,
+  CheckCircle2,
+  Clock3,
+  Crown,
+  Infinity,
+  Loader2,
   LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  TrendingUp,
+  UtensilsCrossed,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { useSession } from "@/lib/auth-client";
 import {
   getVendorDashboard,
   type VendorDashboardData,
 } from "@/lib/api/vendor/vendor-dashboard-api";
-import { getVendorPremiumById } from "@/lib/api/payment/vendor-premium-api";
+import { useSession } from "@/lib/auth-client";
 
 export default function VendorDashboardPage() {
   const { data: session, isPending } = useSession();
@@ -42,15 +41,11 @@ export default function VendorDashboardPage() {
 
     try {
       setLoading(true);
-      setPremiumLoading(true);
 
-      const [dashboardData, premiumData] = await Promise.all([
-        getVendorDashboard(vendorEmail),
-        getVendorPremiumById(user.id),
-      ]);
+      const dashboardData = await getVendorDashboard(vendorEmail);
 
       setDashboard(dashboardData);
-      setIsPremium(premiumData.premium === true);
+      setIsPremium(false); // Temporarily use Free Plan
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to load dashboard.",
@@ -59,7 +54,7 @@ export default function VendorDashboardPage() {
       setLoading(false);
       setPremiumLoading(false);
     }
-  }, [vendorEmail, user]);
+  }, [vendorEmail, user?.id]);
 
   useEffect(() => {
     if (isPending) return;

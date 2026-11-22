@@ -2,10 +2,10 @@
 
 import { CheckCircle, Loader2, ShoppingBag, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import {useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import { cancelCustomerOrder, placeOrder } from "@/lib/api/orders";
+import { cancelCustomerOrder, placeOrder, checkExistingOrder } from "@/lib/api/orders";
 import { authClient } from "@/lib/auth-client";
 
 import {
@@ -210,6 +210,34 @@ export default function OrderButton({
     loading ||
     (!alreadyOrdered && (status !== "approved" || !isActive)) ||
     (alreadyOrdered && orderStatus !== "pending");
+
+
+
+    useEffect(() => {
+      if (isPending || !user?.email || user.role !== "customer") return;
+
+      let isMounted = true;
+
+      const checkOrder = async () => {
+        try {
+          const result = await checkExistingOrder(itemId, user.email!, "");
+
+          if (!isMounted) return;
+
+          setAlreadyOrdered(result.alreadyOrdered);
+          setExistingOrderId(result.orderId || "");
+          setOrderStatus(result.status);
+        } catch (error) {
+          console.error("Failed to check existing order:", error);
+        }
+      };
+
+      checkOrder();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [itemId, user?.email, user?.role, isPending]);
 
   return (
     <>
