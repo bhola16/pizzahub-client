@@ -8,16 +8,33 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  XCircle,
   Zap,
 } from "lucide-react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+import { authClient } from "@/lib/auth-client";
+
+import {
+  cancelVendorSubscription,
   getVendorSubscription,
   type VendorSubscription,
 } from "@/lib/api/vendor/subscription-api";
@@ -48,23 +65,31 @@ const plans = [
 
 export default function VendorSubscriptionPage() {
   const router = useRouter();
+
   const { data: session, isPending } = authClient.useSession();
+
+  const user = session?.user as { email?: string; role?: string } | undefined;
 
   const [subscription, setSubscription] = useState<VendorSubscription>({
     subscriptionPlan: "free",
-    subscriptionStatus: "inactive",
+    subscriptionStatus: "free",
+    premium: false,
+    cancelAtPeriodEnd: false,
+    currentPeriodEnd: null,
   });
 
   const [loading, setLoading] = useState(true);
   const [navigating, setNavigating] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
-  const user = session?.user as { email?: string; role?: string } | undefined;
-
+  // Fetch subscription information.
   const fetchSubscription = useCallback(async () => {
     try {
       setLoading(true);
 
       const data = await getVendorSubscription();
+
       setSubscription(data);
     } catch (error) {
       toast.error(
@@ -85,10 +110,34 @@ export default function VendorSubscriptionPage() {
     }
   }, [isPending, user?.role, fetchSubscription]);
 
-  // Navigate to the intermediate payment page.
+  // Navigate to the payment page.
+  // No sessionStorage permission is required.
   const handleUpgrade = () => {
     setNavigating(true);
     router.push("/dashboard/payment");
+  };
+
+  // Cancel subscription.
+  const handleCancelSubscription = async () => {
+    try {
+      setCancelLoading(true);
+
+      const data = await cancelVendorSubscription();
+
+      toast.success(data.message || "Subscription cancelled successfully.");
+
+      setCancelDialogOpen(false);
+
+      await fetchSubscription();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to cancel subscription.",
+      );
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
   if (isPending || loading) {
@@ -114,6 +163,7 @@ export default function VendorSubscriptionPage() {
   }
 
   const isPremium =
+    subscription.premium === true &&
     subscription.subscriptionPlan === "premium" &&
     ["active", "trialing"].includes(subscription.subscriptionStatus);
 
@@ -131,6 +181,7 @@ export default function VendorSubscriptionPage() {
 
           <div className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-primary" />
+
             <span className="text-xs font-semibold uppercase tracking-wider text-primary">
               Vendor Membership
             </span>
@@ -146,14 +197,14 @@ export default function VendorSubscriptionPage() {
         <Button
           variant="outline"
           onClick={fetchSubscription}
-          disabled={loading}>
+          disabled={loading || cancelLoading}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh Status
         </Button>
       </div>
 
-      {/* Current subscription */}
-      <div className="rounded-2xl border bg-card p-6">
+      {/* Current Subscription */}
+      <div className="space-y-4 rounded-2xl border bg-card p-6">
         <div className="flex items-center gap-4">
           <div className="rounded-xl bg-primary/10 p-3">
             {isPremium ? (
@@ -175,9 +226,78 @@ export default function VendorSubscriptionPage() {
             </p>
           </div>
         </div>
+
+        {/* Cancel Subscription */}
+        {isPremium && (
+          <div className="border-t pt-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-semibold">Cancel Premium Subscription</h3>
+
+                <p className="text-sm text-muted-foreground">
+                  Your Premium access will be removed immediately.
+                </p>
+              </div>
+
+              <AlertDialog
+                open={cancelDialogOpen}
+                onOpenChange={(open) => {
+                  if (!cancelLoading) {
+                    setCancelDialogOpen(open);
+                  }
+                }}>
+                <AlertDialogTrigger
+                  render={
+                    <Button variant="destructive" disabled={cancelLoading} />
+                  }>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel Subscription
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Cancel Premium Subscription?
+                    </AlertDialogTitle>
+
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel your Premium subscription?
+                      Your Premium access will be removed immediately, and your
+                      account will return to the Free plan. This action cannot
+                      be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={cancelLoading}>
+                      Keep Premium
+                    </AlertDialogCancel>
+
+                    <AlertDialogAction
+                      disabled={cancelLoading}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        handleCancelSubscription();
+                      }}
+                      className="bg-destructive text-white hover:bg-destructive/90">
+                      {cancelLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Cancelling...
+                        </>
+                      ) : (
+                        "Yes, Cancel Subscription"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Available plans */}
+      {/* Available Plans */}
       <div className="space-y-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Find Your Perfect Plan</h2>
