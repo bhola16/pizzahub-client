@@ -1,6 +1,7 @@
 
 "use client";
 
+import { getTokenFromClient } from "@/lib/api/get-token";
 import {
   addMenuItem,
   uploadMenuItemImage,
@@ -77,9 +78,7 @@ export default function AddMenuItemPage() {
 
         const premium =
           subscription.subscriptionPlan === "premium" &&
-          ["active", "trialing"].includes(
-            subscription.subscriptionStatus,
-          );
+          ["active", "trialing"].includes(subscription.subscriptionStatus);
 
         if (!cancelled) {
           setIsPremium(premium);
@@ -121,9 +120,19 @@ export default function AddMenuItemPage() {
       try {
         setCountLoading(true);
 
+        const { token, error } = await getTokenFromClient();
+
+        if (error || !token) {
+          throw new Error("Authentication failed. Please log in again.");
+        }
+
         const response = await fetch(
           `${API_URL}/menuItems/count/${encodeURIComponent(user.email)}`,
           {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
             credentials: "include",
             cache: "no-store",
           },
@@ -132,9 +141,7 @@ export default function AddMenuItemPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            data.message || "Failed to fetch menu item count.",
-          );
+          throw new Error(data.message || "Failed to fetch menu item count.");
         }
 
         if (!cancelled) {
@@ -166,9 +173,7 @@ export default function AddMenuItemPage() {
 
   // Handle form changes
   const handleChange = (
-    e: ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -261,9 +266,7 @@ export default function AddMenuItemPage() {
         id: "menu-upload",
       });
 
-      const uploadedImageUrl = await uploadMenuItemImage(
-        imageUrl.trim(),
-      );
+      const uploadedImageUrl = await uploadMenuItemImage(imageUrl.trim());
 
       // Save menu item
       // Vendor identity and subscription are verified by the backend.
@@ -278,8 +281,7 @@ export default function AddMenuItemPage() {
 
       if (result.upgradeRequired) {
         toast.error(
-          result.message ||
-            "Please upgrade your plan to add more menu items.",
+          result.message || "Please upgrade your plan to add more menu items.",
           { id: "menu-upload" },
         );
 
@@ -325,8 +327,7 @@ export default function AddMenuItemPage() {
       <div>
         <Link
           href="/dashboard/vendor/my-menu-items"
-          className="mb-3 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
-        >
+          className="mb-3 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400">
           <ArrowLeft size={16} />
           Back to My Menu Items
         </Link>
@@ -383,8 +384,7 @@ export default function AddMenuItemPage() {
           {isFreePlan && !premiumLoading && (
             <Link
               href="/dashboard/vendor/subscription"
-              className="inline-flex w-fit items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700"
-            >
+              className="inline-flex w-fit items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700">
               Upgrade Plan
             </Link>
           )}
@@ -394,8 +394,7 @@ export default function AddMenuItemPage() {
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#211C19] sm:p-7"
-      >
+        className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#211C19] sm:p-7">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Pizza Information
@@ -410,8 +409,7 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="name"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+              className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Pizza Name *
             </label>
 
@@ -431,8 +429,7 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="category"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+              className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Pizza Category *
             </label>
 
@@ -442,8 +439,7 @@ export default function AddMenuItemPage() {
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:focus:ring-orange-950"
-            >
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-[#171412] dark:text-gray-100 dark:focus:ring-orange-950">
               <option value="">Select pizza category</option>
               <option value="Classic Pizzas">Classic Pizzas</option>
               <option value="Vegetarian Pizzas">Vegetarian Pizzas</option>
@@ -452,9 +448,7 @@ export default function AddMenuItemPage() {
                 Specialty / Gourmet Pizzas
               </option>
               <option value="Sides & Appetizers">Sides & Appetizers</option>
-              <option value="Beverages & Desserts">
-                Beverages & Desserts
-              </option>
+              <option value="Beverages & Desserts">Beverages & Desserts</option>
             </select>
           </div>
 
@@ -462,8 +456,7 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="price"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+              className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Price (৳) *
             </label>
 
@@ -485,8 +478,7 @@ export default function AddMenuItemPage() {
           <div className="space-y-2">
             <label
               htmlFor="location"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+              className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Location (Area / City) *
             </label>
 
@@ -507,8 +499,7 @@ export default function AddMenuItemPage() {
         <div className="space-y-2">
           <label
             htmlFor="description"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
+            className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Description *
           </label>
 
@@ -529,8 +520,7 @@ export default function AddMenuItemPage() {
           <div>
             <label
               htmlFor="imageUrl"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+              className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Pizza Image URL *
             </label>
 
@@ -568,9 +558,7 @@ export default function AddMenuItemPage() {
                   alt="Pizza preview"
                   onError={() => {
                     setImageError(true);
-                    toast.error(
-                      "Unable to load image. Please check the URL.",
-                    );
+                    toast.error("Unable to load image. Please check the URL.");
                   }}
                   className="h-52 w-full object-cover"
                 />
@@ -596,8 +584,8 @@ export default function AddMenuItemPage() {
             </p>
 
             <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
-              Your pizza will remain pending until an admin reviews and
-              approves it.
+              Your pizza will remain pending until an admin reviews and approves
+              it.
             </p>
           </div>
         </div>
@@ -606,21 +594,14 @@ export default function AddMenuItemPage() {
         <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 dark:border-gray-800 sm:flex-row sm:justify-end">
           <Link
             href="/dashboard/vendor/my-menu-items"
-            className="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-[#2A2420]"
-          >
+            className="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-[#2A2420]">
             Cancel
           </Link>
 
           <button
             type="submit"
-            disabled={
-              loading ||
-              countLoading ||
-              premiumLoading ||
-              isPending
-            }
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
+            disabled={loading || countLoading || premiumLoading || isPending}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60">
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
