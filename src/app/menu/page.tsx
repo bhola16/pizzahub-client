@@ -1,7 +1,9 @@
 import MenuCard from "@/components/menu/MenuCard";
 import MenuFilters from "@/components/menu/MenuFilters";
 import { getMenuItems } from "@/lib/api/menu";
+import { MenuItem } from "@/lib/api/menu-server";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 interface MenuPageProps {
   searchParams: Promise<{
@@ -21,13 +23,24 @@ const categories = [
 ];
 
 export default async function MenuPage({ searchParams }: MenuPageProps) {
+
+ 
+
+
   const filters = await searchParams;
 
-  // Fetch filtered menu items
-  const items = await getMenuItems(filters);
+  let items: MenuItem[];
+  let allItems: MenuItem[];
 
-  // Fetch all approved and active menu items for filter counts
-  const allItems = await getMenuItems();
+  try {
+    [items, allItems] = await Promise.all([
+      getMenuItems(filters),
+      getMenuItems(),
+    ]);
+  } catch (error) {
+    console.error("Failed to fetch menu items:", error);
+    notFound();
+  }
 
   // Get unique locations
   const locations = [

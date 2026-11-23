@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { getMenuItems, type MenuItem } from "@/lib/api/menu";
+import { ArrowUpRight, Utensils } from "lucide-react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { ArrowUpRight, Utensils } from "lucide-react";
-import { getMenuItems, type MenuItem } from "@/lib/api/menu";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const categories = [
   {
@@ -62,7 +63,8 @@ const PizzaCategories = () => {
         const data = await getMenuItems();
         setMenuItems(data);
       } catch (error) {
-        console.error("Failed to fetch category data:", error);
+        // console.error("Failed to fetch category data:", error);
+        toast.error("Unable to load menu categories. Please try again.");
       } finally {
         setLoading(false);
       }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { getFeaturedMenuItems } from "@/lib/api/menu";
+import { MenuItem } from "@/lib/api/menu-server";
+import { ArrowRight, Loader2, MapPin, Store } from "lucide-react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { ArrowRight, MapPin, Store, Loader2 } from "lucide-react";
-import { getFeaturedMenuItems, type MenuItem } from "@/lib/api/menu";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const FeaturedMenu = () => {
   const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
@@ -16,8 +18,8 @@ const FeaturedMenu = () => {
       try {
         const data = await getFeaturedMenuItems();
         setFeaturedItems(data.slice(0, 6));
-      } catch (error) {
-        console.error("Failed to fetch featured menu items:", error);
+      } catch {
+        toast.error("Unable to load featured menu items. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -82,21 +84,23 @@ const FeaturedMenu = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-gray-800 dark:bg-[#1a1a1a]">
-                {/* Item Image */}
-                <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-800">
-                  <Image
-                    src={item.images?.[0] || "/assets/pizzas/pizza1.jpeg"}
-                    alt={item.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
+                {/* Item Image - API Image Only */}
+                {item.images?.[0] && (
+                  <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <Image
+                      src={item.images[0]}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
 
-                  {/* Category */}
-                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
-                    {item.category} this is the category...
-                  </span>
-                </div>
+                    {/* Category */}
+                    <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
+                      {item.category}
+                    </span>
+                  </div>
+                )}
 
                 {/* Item Information */}
                 <div className="p-5">

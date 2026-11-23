@@ -21,6 +21,9 @@ interface MenuDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
+
+
+
 export default async function MenuDetailsPage({
   params,
 }: MenuDetailsPageProps) {
