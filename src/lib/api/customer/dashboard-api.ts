@@ -1,3 +1,5 @@
+import { getTokenFromClient } from "../get-token";
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export type CustomerDashboardData = {
@@ -10,9 +12,18 @@ export type CustomerDashboardData = {
 export async function getCustomerDashboard(
   customerEmail: string,
 ): Promise<CustomerDashboardData> {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication required.");
+  }
+
   const response = await fetch(
     `${SERVER_URL}/customer-dashboard/${encodeURIComponent(customerEmail)}`,
     {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       cache: "no-store",
     },
   );
@@ -30,10 +41,18 @@ export async function deleteRejectedCustomerOrder(
   orderId: string,
   customerEmail: string,
 ) {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication required.");
+  }
+  c
+
   const response = await fetch(`${SERVER_URL}/orders/${orderId}/rejected`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ customerEmail }),
   });

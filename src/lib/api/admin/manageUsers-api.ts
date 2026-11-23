@@ -1,3 +1,5 @@
+import { getTokenFromClient } from "../get-token";
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface AdminUser {
@@ -17,6 +19,19 @@ interface UsersResponse {
   data: AdminUser[];
   message?: string;
 }
+
+// Get JWT Authorization headers
+const getAuthHeaders = async () => {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication required.");
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 // Handle API responses
 const handleResponse = async (response: Response) => {
@@ -48,6 +63,10 @@ export const getAdminUsers = async (
 
   const response = await fetch(
     `${SERVER_URL}/admin/users${query ? `?${query}` : ""}`,
+    {
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   const result: UsersResponse = await handleResponse(response);
@@ -74,6 +93,7 @@ const updateUserStatus = async (
     `${SERVER_URL}/admin/users/${userId}/${action}`,
     {
       method: "PATCH",
+      headers: await getAuthHeaders(),
     },
   );
 

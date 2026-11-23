@@ -1,3 +1,4 @@
+import { getTokenFromClient } from "./get-token";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -32,6 +33,24 @@ interface OrderResponse {
   data?: RawOrder | Order;
 }
 
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { token, error } = await getTokenFromClient();
+
+
+  console.log(token);
+
+  if (error || !token) {
+    throw new Error("Authentication failed. Please log in again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+
 async function getApiResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
 
@@ -64,13 +83,7 @@ export async function checkExistingOrder(
   itemId: string,
   customerEmail: string,
   deliveryDate: string,
-): Promise<{
-  success?: boolean;
-  alreadyOrdered: boolean;
-  orderId?: string;
-  status?: Order["status"];
-  message?: string;
-}> {
+) {
   const params = new URLSearchParams({ itemId, customerEmail });
 
   if (deliveryDate) {
@@ -79,7 +92,10 @@ export async function checkExistingOrder(
 
   const response = await fetch(
     `${SERVER_URL}/orders/check?${params.toString()}`,
-    { cache: "no-store" },
+    {
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   const result = await getApiResponse<{
@@ -97,7 +113,7 @@ export async function checkExistingOrder(
   return result;
 }
 
-// Place an order in the database
+// Place an order
 export async function placeOrder(data: {
   itemId: string;
   customerName: string;
@@ -108,21 +124,13 @@ export async function placeOrder(data: {
 }): Promise<OrderResponse> {
   const response = await fetch(`${SERVER_URL}/orders`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
   });
 
   const result = await getApiResponse<OrderResponse>(response);
 
   if (!response.ok) {
-    console.error("Order API error:", {
-      status: response.status,
-      body: result,
-      submittedData: data,
-    });
-
     if (response.status === 409) {
       return { ...result, alreadyOrdered: true };
     }
@@ -139,13 +147,16 @@ export async function placeOrder(data: {
   return result;
 }
 
-// Get customer's orders
+// Get customer orders
 export async function getCustomerOrders(
   customerEmail: string,
 ): Promise<Order[]> {
   const response = await fetch(
     `${SERVER_URL}/orders/customer/${encodeURIComponent(customerEmail)}`,
-    { cache: "no-store" },
+    {
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   const result = await getApiResponse<RawOrder[]>(response);
@@ -157,16 +168,16 @@ export async function getCustomerOrders(
   return result.map(normalizeOrder);
 }
 
-// Cancel customer's pending order
+// Cancel customer order
 export async function cancelCustomerOrder(
   orderId: string,
   customerEmail: string,
 ): Promise<OrderResponse> {
+
+  
   const response = await fetch(`${SERVER_URL}/orders/${orderId}/withdraw`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ customerEmail }),
   });
 
@@ -179,11 +190,16 @@ export async function cancelCustomerOrder(
   return result;
 }
 
-// Get vendor's orders
-export async function getVendorOrders(vendorEmail: string): Promise<Order[]> {
+// Get vendor orders
+export async function getVendorOrders(
+  vendorEmail: string,
+): Promise<Order[]> {
   const response = await fetch(
     `${SERVER_URL}/orders/vendor/${encodeURIComponent(vendorEmail)}`,
-    { cache: "no-store" },
+    {
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   const result = await getApiResponse<RawOrder[]>(response);
@@ -195,7 +211,7 @@ export async function getVendorOrders(vendorEmail: string): Promise<Order[]> {
   return result.map(normalizeOrder);
 }
 
-// Vendor accepts or rejects an order
+// Vendor accepts or rejects order
 export async function updateVendorOrderStatus(
   orderId: string,
   vendorEmail: string,
@@ -205,9 +221,7 @@ export async function updateVendorOrderStatus(
     `${SERVER_URL}/orders/${orderId}/vendor-status`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: await getAuthHeaders(),
       body: JSON.stringify({ vendorEmail, status }),
     },
   );

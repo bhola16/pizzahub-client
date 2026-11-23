@@ -1,23 +1,7 @@
 import { toast } from "sonner";
+import { MenuItem } from "./menu-server";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-export interface MenuItem {
-  _id: string;
-  name: string;
-  category: string;
-  price: number;
-  description: string;
-  images: string[];
-  location: string;
-  vendorName: string;
-  vendorEmail: string;
-  vendorPhone?: string;
-  vendorAddress?: string;
-  status: string;
-  isActive: boolean;
-  createdAt?: string;
-}
 
 interface MenuResponse {
   success: boolean;
@@ -86,23 +70,3 @@ export async function getFeaturedMenuItems(): Promise<MenuItem[]> {
   }
 }
 
-
-// Get a single menu item
-export async function getMenuItemById(id: string): Promise<MenuItem | null> {
-  try {
-    const response = await fetch(`${SERVER_URL}/menuItems/${id}`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const result: SingleMenuResponse = await response.json();
-    return result.data || null;
-  } catch (error) {
-    // console.error("Get menu item error:", error);
-    // toast.error("Unable to connect to the server. Please try again later.");
-    return null;
-  }
-}

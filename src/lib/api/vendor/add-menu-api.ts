@@ -1,3 +1,5 @@
+import { getTokenFromClient } from "../get-token";
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
@@ -65,10 +67,21 @@ export async function addMenuItem(menuItem: {
   location: string;
   images: string[];
 }): Promise<AddMenuItemResponse> {
+
+
+   const { token, error } = await getTokenFromClient();
+  
+    if (error || !token) {
+      throw new Error("Authentication failed. Please log in again.");
+    }
+  
+    // console.log(token)
+
   const response = await fetch(`${SERVER_URL}/menuItems`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     credentials: "include",
     body: JSON.stringify(menuItem),

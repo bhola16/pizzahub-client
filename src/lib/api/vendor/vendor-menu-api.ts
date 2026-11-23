@@ -1,4 +1,19 @@
+import { getTokenFromClient } from "../get-token";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication failed. Please log in again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 export async function updateMenuItem(
   id: string,
@@ -14,9 +29,7 @@ export async function updateMenuItem(
 ) {
   const response = await fetch(`${API_URL}/menuItems/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -32,9 +45,7 @@ export async function updateMenuItem(
 export async function deleteMenuItem(id: string, vendorEmail: string) {
   const response = await fetch(`${API_URL}/menuItems/${id}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ vendorEmail }),
   });
 
@@ -54,9 +65,7 @@ export async function updateMenuItemAvailability(
 ) {
   const response = await fetch(`${API_URL}/menuItems/${id}/availability`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ vendorEmail, isActive }),
   });
 
@@ -72,10 +81,16 @@ export async function updateMenuItemAvailability(
 export async function getVendorMenuItems(vendorEmail: string) {
   const response = await fetch(
     `${API_URL}/vendor-menu-items/${encodeURIComponent(vendorEmail)}`,
+    {
+      method: "GET",
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch menu items.");
+    const result = await response.json();
+    throw new Error(result.message || "Failed to fetch menu items.");
   }
 
   return response.json();

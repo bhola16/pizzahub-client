@@ -1,3 +1,4 @@
+import { getTokenFromClient } from "../get-token";
 
 const SERVER_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -30,6 +31,12 @@ export const getAdminTransactions = async (
   plan = "all",
   paymentStatus = "all",
 ): Promise<AdminTransaction[]> => {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication required.");
+  }
+
   const params = new URLSearchParams();
 
   if (search.trim()) params.set("search", search.trim());
@@ -42,19 +49,17 @@ export const getAdminTransactions = async (
 
   const response = await fetch(url, {
     method: "GET",
-    credentials: "include",
     cache: "no-store",
     headers: {
       Accept: "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
 
   const contentType = response.headers.get("content-type");
 
   if (!contentType?.includes("application/json")) {
-    throw new Error(
-      `Invalid backend response. HTTP ${response.status}`,
-    );
+    throw new Error(`Invalid backend response. HTTP ${response.status}`);
   }
 
   const result: TransactionsResponse = await response.json();

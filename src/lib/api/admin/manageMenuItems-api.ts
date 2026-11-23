@@ -1,3 +1,5 @@
+import { getTokenFromClient } from "../get-token";
+
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface AdminMenuItem {
@@ -27,6 +29,19 @@ interface ApiResponse {
   message: string;
 }
 
+// Get JWT Authorization headers
+const getAuthHeaders = async () => {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication required.");
+  }
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 // Handle API responses
 const handleResponse = async <T>(response: Response): Promise<T> => {
   const result = await response.json();
@@ -54,6 +69,10 @@ export const getAdminMenuItems = async (
 
   const response = await fetch(
     `${SERVER_URL}/admin/menu-items${query ? `?${query}` : ""}`,
+    {
+      headers: await getAuthHeaders(),
+      cache: "no-store",
+    },
   );
 
   const result = await handleResponse<MenuItemsResponse>(response);
@@ -69,6 +88,7 @@ export const reviewAdminMenuItem = async (
   const response = await fetch(`${SERVER_URL}/admin/menu-items/${id}/review`, {
     method: "PATCH",
     headers: {
+      ...(await getAuthHeaders()),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ status }),
@@ -87,6 +107,7 @@ export const updateAdminMenuItemAvailability = async (
     {
       method: "PATCH",
       headers: {
+        ...(await getAuthHeaders()),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ isActive }),
@@ -100,6 +121,7 @@ export const updateAdminMenuItemAvailability = async (
 export const deleteAdminMenuItem = async (id: string) => {
   const response = await fetch(`${SERVER_URL}/admin/menu-items/${id}`, {
     method: "DELETE",
+    headers: await getAuthHeaders(),
   });
 
   return handleResponse<ApiResponse>(response);

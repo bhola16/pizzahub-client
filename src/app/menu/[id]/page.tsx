@@ -16,8 +16,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import OrderButton from "@/components/menu/OrderButton";
-import { getMenuItemById } from "@/lib/api/menu";
-
+import { getMenuItemById } from "@/lib/api/menu-server";
 interface MenuDetailsPageProps {
   params: Promise<{ id: string }>;
 }

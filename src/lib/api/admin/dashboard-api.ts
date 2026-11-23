@@ -1,6 +1,6 @@
+import { getTokenFromClient } from "../get-token";
 
-const SERVER_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface AdminDashboardStats {
   totalUsers: number;
@@ -19,12 +19,18 @@ interface DashboardStatsResponse {
 
 export const getAdminDashboardStats =
   async (): Promise<AdminDashboardStats> => {
-    const response = await fetch(
-      `${SERVER_URL}/admin/dashboard/stats`,
-      {
-        cache: "no-store",
+    const { token, error } = await getTokenFromClient();
+
+    if (error || !token) {
+      throw new Error("Authentication required.");
+    }
+
+    const response = await fetch(`${SERVER_URL}/admin/dashboard/stats`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+      cache: "no-store",
+    });
 
     const result: DashboardStatsResponse = await response.json();
 
