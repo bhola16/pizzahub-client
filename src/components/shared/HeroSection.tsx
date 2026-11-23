@@ -56,11 +56,7 @@ const HeroSection = () => {
               />
             </Link>
 
-            <Link
-              href="/about"
-              className="inline-flex w-full items-center justify-center rounded-full border border-orange-300 px-8 py-4 text-base font-semibold text-orange-600 transition-all duration-300 hover:border-orange-500 hover:bg-orange-50 dark:border-neutral-700 dark:text-orange-400 dark:hover:border-orange-500 dark:hover:bg-neutral-800 sm:w-auto">
-              Discover PizzaHub
-            </Link>
+           
           </div>
 
           {/* Trust Indicator */}

@@ -157,26 +157,25 @@ const AdminTransactionsPage = () => {
     router.replace(pathname, { scroll: false });
   };
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
+ const fetchTransactions = useCallback(async () => {
+   try {
+     setLoading(true);
 
-      const data = await getAdminTransactions(
-        searchTerm,
-        planFilter,
-        paymentFilter,
-      );
+     const data = await getAdminTransactions(
+       searchTerm,
+       planFilter,
+       paymentFilter,
+     );
 
-      setTransactions(data);
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to load transactions.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [searchTerm, planFilter, paymentFilter]);
+     setTransactions(data);
+   } catch (error) {
+     toast.error(
+       error instanceof Error ? error.message : "Failed to load transactions.",
+     );
+   } finally {
+     setLoading(false);
+   }
+ }, [searchTerm, planFilter, paymentFilter]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -208,23 +207,28 @@ const AdminTransactionsPage = () => {
     };
   }, [transactions]);
 
-  const handleRefresh = async () => {
-    try {
-      setLoading(true);
+ const handleRefresh = async () => {
+   try {
+     setLoading(true);
 
-      const data = await getAdminTransactions(
-        searchTerm,
-        planFilter,
-        paymentFilter,
-      );
+     const data = await getAdminTransactions(
+       searchTerm,
+       planFilter,
+       paymentFilter,
+     );
 
-      setTransactions(data);
-    } catch (error) {
-      console.error("Failed to refresh transactions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+     setTransactions(data);
+     toast.success("Transactions refreshed successfully.");
+   } catch (error) {
+     toast.error(
+       error instanceof Error
+         ? error.message
+         : "Failed to refresh transactions.",
+     );
+   } finally {
+     setLoading(false);
+   }
+ };
 
   const hasFilters =
     searchTerm.trim() !== "" || planFilter !== "all" || paymentFilter !== "all";
