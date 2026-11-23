@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { FaGoogle } from "react-icons/fa";
 
 type AccountRole = "vendor" | "customer";
 
@@ -144,6 +145,8 @@ export default function SignUpPage() {
     }
   };
 
+
+
   // Create account
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -205,18 +208,28 @@ export default function SignUpPage() {
     }
   };
 
-  // Google sign-up
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+
     try {
-      await authClient.signIn.social({
+      const { error } = await authClient.signIn.social({
         provider: "google",
         callbackURL: "/",
       });
-    } catch (error) {
-      console.error("Google sign-up error:", error);
-      toast.error("Google authentication failed.");
+
+      if (error) {
+        toast.error(error.message || "Google sign-up failed.");
+        setGoogleLoading(false);
+      }
+    } catch {
+      toast.error("Unable to sign up with Google.");
+      setGoogleLoading(false);
     }
   };
+
+
 
   return (
     <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[#fffaf3] px-4 py-10 transition-colors dark:bg-[#111111] sm:px-6">
@@ -569,26 +582,10 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleGoogleSignUp}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#e7d8cc] bg-white py-3 font-semibold text-[#44403c] transition hover:bg-[#fffaf3] dark:border-gray-700 dark:bg-[#252525] dark:text-gray-200 dark:hover:bg-[#303030]">
-              <svg viewBox="0 0 48 48" className="h-5 w-5">
-                <path
-                  fill="#EA4335"
-                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.73 7.18l7.65 5.93c4.47-4.13 7.12-10.2 7.12-17.58Z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a23.9 23.9 0 0 0 0 21.56l7.98-6.19Z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M24 48c6.47 0 11.92-2.13 15.89-5.87l-7.65-5.93c-2.13 1.43-4.86 2.28-8.24 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
-                />
-              </svg>
-              Continue with Google
+              disabled={googleLoading || loading || uploadingImage}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#e7d8cc] bg-white py-3 font-semibold text-[#44403c] transition hover:bg-[#fffaf3] disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#252525] dark:text-gray-200 dark:hover:bg-[#303030]">
+              <FaGoogle />
+              {googleLoading ? "Redirecting..." : "Continue with Google"}
             </button>
 
             {/* Sign In Link */}

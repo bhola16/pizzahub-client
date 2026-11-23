@@ -14,23 +14,13 @@ export const auth = betterAuth({
     enabled: true,
   },
 
-  // user: {
-  //   additionalFields: {
-  //     role: {
-  //       type: "string",
-  //       required: false,
-  //       defaultValue: "customer",
-  //       input: true,
-  //     },
-  //   },
-  // },
-
-  // subscriptionPlan: {
-  //   type: "string",
-  //   required: false,
-  //   defaultValue: "free",
-  //   input: false,
-  // },
+  socialProviders: {
+    google: {
+      prompt: "select_account",
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
 
   user: {
     additionalFields: {
@@ -46,6 +36,13 @@ export const auth = betterAuth({
         defaultValue: "free",
         input: false,
       },
+    },
+  },
+
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
     },
   },
 });
