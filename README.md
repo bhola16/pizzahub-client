@@ -1,23 +1,23 @@
-# 🍕 PizzaHub
+# 🍕 PizzaHub-Client
 
 ### Freshly Baked. Always Delicious.
 
-**PizzaHub** is a modern, responsive, full-stack pizza ordering and vendor management platform built with Next.js, React, TypeScript, Tailwind CSS, and Express.js.
+**PizzaHub** is a modern, responsive, full-stack pizza ordering and vendor management platform. It connects customers with pizza vendors through an online marketplace where customers can explore menu items, place orders, and manage their ordering activities.
 
-The platform connects customers with pizza vendors through an online menu marketplace. Customers can explore menu items, place orders, and track their ordering activities. Vendors can publish and manage menu items, handle customer orders, and upgrade their accounts through Premium subscriptions. Administrators can manage users, moderate menu submissions, and monitor subscription transactions.
+Vendors can publish and manage menu items, handle customer orders, monitor their business activities, and upgrade their accounts through Premium subscriptions. Administrators can manage users, review menu submissions, and monitor platform transactions.
 
-PizzaHub aims to provide a convenient food ordering experience while helping vendors manage their businesses through a centralized platform.
+The client application is built with **Next.js, React, TypeScript, and Tailwind CSS**, and communicates with a separate backend API.
 
 ---
 
 ## 🚀 Live Demo
 
-🔗 **Live Website:** [Visit PizzaHub](https://pizzshub-client.vercel.app)
+**Live Website:** [https://pizzshub-client.vercel.app/](https://pizzshub-client.vercel.app/)
 
 ## 📂 GitHub Repositories
 
-- **Client-side:** [PizzaHub Client](https://github.com/bhola16/pizzahub-client)
-- **Server-side:** [PizzaHub Server](https://github.com/bhola16/pizzahub-server)
+- **Client-side Repository:** [PizzaHub Client](https://github.com/bhola16/pizzahub-client)
+- **Server-side Repository:** [PizzaHub Server](https://github.com/bhola16/pizzahub-server)
 
 ---
 
@@ -27,7 +27,7 @@ PizzaHub aims to provide a convenient food ordering experience while helping ven
 
 The homepage introduces PizzaHub and highlights its main services.
 
-- Hero section with calls to action.
+- Attractive hero section with calls to action.
 - Featured menu items.
 - Pizza category sections.
 - Platform highlights.
@@ -39,8 +39,8 @@ The homepage introduces PizzaHub and highlights its main services.
 Customers can browse available menu items from different vendors.
 
 - View available menu items.
-- Search menu items.
-- Filter by category and location.
+- Search menu items by name.
+- Filter menu items by category and location.
 - Explore item images, descriptions, and prices.
 - View vendor information.
 - Access individual menu item details.
@@ -49,12 +49,12 @@ Customers can browse available menu items from different vendors.
 
 Each menu item has an individual details page.
 
-- Menu item name and images.
-- Category and description.
-- Price information.
-- Vendor information.
-- Available location.
-- Customer ordering options.
+- View menu item name and images.
+- Explore category and description.
+- Check price information.
+- View vendor information.
+- Check available location.
+- Access customer ordering options.
 
 Dynamic routing allows individual menu items to be accessed using their unique IDs.
 
@@ -78,264 +78,116 @@ Customers can manage their ordering activities.
 - View total orders.
 - Review pending, accepted, and rejected orders.
 - Access order information.
-- Cancel pending orders when applicable.
+- Cancel eligible pending orders.
 - Remove rejected orders.
+- Manage personal profile information.
 
 ### 6. 🏪 Vendor Dashboard
 
-Vendors can manage their menu items, customer orders, and subscriptions.
+Vendors can manage their menu items and customer orders.
 
 - View vendor dashboard statistics.
-- Monitor total and active menu items.
-- Review incoming orders.
-- Track order statuses.
-- Manage menu items.
-- Access subscription information.
-
-### 7. ➕ Add Menu Items
-
-Vendors can publish new menu items.
-
-Menu item information includes:
-
-- Item name.
-- Category.
-- Description.
-- Price.
-- Location.
-- Item images.
-
-Additional functionality:
-
-- Image uploads using ImgBB.
-- Form validation.
-- Backend API integration.
-- Toast notifications.
-- Configurable menu item limits.
-
-### 8. 📝 Manage Menu Items
-
-Vendors can manage their published menu items.
-
-- View personally created menu items.
-- Edit existing menu information.
-- Update images and descriptions.
-- Change item availability.
+- Add new menu items.
+- Upload menu images using ImgBB.
+- Edit existing menu items.
 - Delete menu items.
-- Receive operation feedback.
+- Manage menu item availability.
+- Monitor menu item approval status.
+- View customer orders.
+- Accept or reject pending orders.
+- Manage Premium subscriptions.
 
-### 9. 📦 Vendor Order Management
+### 7. 🛡️ Admin Dashboard
 
-Vendors can manage orders received from customers.
+Administrators can manage and monitor the platform.
 
-- View incoming orders.
-- Review customer information.
-- Check delivery addresses and dates.
-- Read customer messages.
-- Accept orders.
-- Reject orders.
-- Track order statuses.
-
-### 10. 💎 Free and Premium Subscriptions
-
-PizzaHub provides subscription options for vendors.
-
-- View current subscription plan.
-- Review Premium plan information.
-- Check subscription status.
-- Upgrade to Premium.
-- View subscription details.
-- Cancel an active subscription.
-- Apply configurable menu item limits.
-
-### 11. 💳 Stripe Payment Integration
-
-PizzaHub integrates Stripe Checkout for Premium subscriptions.
-
-- Create Stripe Checkout sessions.
-- Redirect users to Stripe-hosted checkout.
-- Support recurring subscription payments.
-- Handle payment success and cancellation redirects.
-- Retrieve subscription information.
-- Cancel active subscriptions.
-- Process Stripe webhook events on the backend.
-
-The backend verifies Stripe webhook signatures before updating subscription information. Premium access is activated through verified backend payment events rather than relying only on frontend redirects.
-
-The current backend configuration defines the Premium subscription as USD 20 per month.
-
-### 12. 🛡️ Admin Dashboard
-
-Administrators can monitor and manage platform activities.
-
-- View total users.
-- View vendor and customer counts.
-- Monitor total menu items.
-- Track pending menu submissions.
-- View subscription transaction statistics.
-
-### 13. 👥 User Management
-
-Administrators can review registered platform users.
-
-- View registered users.
-- Search user information.
-- Review user details.
-- Monitor customer and vendor accounts.
-
-### 14. ✅ Menu Item Moderation
-
-Administrators can manage menu submissions across the platform.
-
-- View all menu items.
-- Search menu items.
-- Filter by category and status.
-- Approve pending menu items.
-- Reject menu submissions.
-- Activate or deactivate menu items.
+- View overall platform statistics.
+- Monitor registered users, customers, and vendors.
+- Manage user accounts.
+- Search and filter users.
+- Filter users by role.
+- Block and unblock user accounts.
+- Review submitted menu items.
+- Approve or reject menu submissions.
+- Update menu item availability.
 - Delete menu items.
+- View and filter payment transactions.
+- Monitor subscription and payment information.
 
-### 15. 💰 Transaction Management
+### 8. 💎 Premium Subscription
 
-Administrators can review subscription transaction records.
+PizzaHub provides Free and Premium subscription options for vendors.
 
-- View transaction information.
-- Search transactions.
-- Filter by subscription plan.
-- Filter by payment status.
-- Review payment amounts and currencies.
-- Monitor subscription revenue.
+| Feature                 | Free Plan    | Premium Plan |
+| ----------------------- | ------------ | ------------ |
+| Active Menu Items       | Maximum 3    | Unlimited    |
+| Vendor Dashboard        | Included     | Included     |
+| Order Management        | Included     | Included     |
+| Premium Vendor Badge    | Not included | Included     |
+| Featured Menu Placement | Not included | Included     |
+| Price                   | Free         | $20          |
 
-### 16. 🔐 Authentication and Authorization
+Premium subscription payments are handled through Stripe Checkout.
 
-PizzaHub uses **Better Auth** for authentication and session management.
+### 9. 🔐 Authentication and Authorization
 
-Supported authentication methods:
+- Email and password authentication.
+- Google authentication.
+- Session management using Better Auth.
+- JWT authentication support.
+- Role-based account types: Customer, Vendor, and Admin.
+- Protected routes for authenticated users.
+- Role-specific dashboard access.
+- Authentication-based redirection.
 
-- Email and password.
-- Google sign-in.
+### 10. 🎨 User Interface
 
-The application provides role-based access for:
-
-- **Customer:** Browse menu items, place orders, and manage personal orders.
-- **Vendor:** Manage menu items, handle orders, and manage subscriptions.
-- **Admin:** Manage users, moderate menu items, and monitor transactions.
-
-JWT-based authorization is used for authenticated communication between the client and backend API.
-
-### 17. 👤 User Profile
-
-Authenticated users can access their profile information.
-
-- View personal information.
-- Display user name and email.
-- Display profile image when available.
-- Access account-related information.
-
-### 18. 🌙 Dark and Light Mode
-
-PizzaHub supports light and dark themes using `next-themes`.
-
-- Switch between light and dark appearance.
-- Maintain consistent styling across application pages.
-- Improve the browsing experience in different lighting conditions.
-
-### 19. 🔔 Toast Notifications
-
-The application uses **Sonner** for user feedback.
-
-- Success notifications.
-- Validation messages.
-- API error notifications.
-- Order operation feedback.
-- Menu management notifications.
-- Payment-related notifications.
-
-### 20. ⏳ Loading and Error Handling
-
-The application includes user-friendly loading and error interfaces.
-
-- Loading indicators.
-- Empty states.
-- API error handling.
-- Retry functionality where supported.
-- Custom not-found pages.
-- Menu-specific loading and error interfaces.
-
-### 21. 📱 Responsive Design
-
-Built with Tailwind CSS, PizzaHub adapts to different screen sizes.
-
-- **Mobile:** Responsive navigation, menu browsing, and dashboard layouts.
-- **Tablet:** Flexible grids and adaptive spacing.
-- **Desktop:** Expanded menu cards, dashboards, and management interfaces.
+- Fully responsive design.
+- Light and dark theme support.
+- Interactive animations using Motion.
+- Reusable UI components.
+- Loading indicators and loading states.
+- Toast notifications for success and error messages.
+- Custom error and not-found pages.
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Technology Stack
 
-| Technology | Purpose |
-| --- | --- |
-| Next.js 16 | React framework and App Router |
-| React 19 | User interface development |
-| TypeScript | Type-safe application code |
-| Tailwind CSS 4 | Styling and responsive layouts |
-| shadcn/ui | Reusable UI components |
-| Better Auth | Authentication and session management |
-| MongoDB | Database and authentication data storage |
-| Express.js 5 | Backend REST API |
-| Node.js | Backend runtime |
-| Stripe | Subscription payments and checkout |
-| ImgBB | Image hosting |
-| React Hook Form | Form management |
-| Zod | Schema validation |
-| Sonner | Toast notifications |
-| Lucide React | Icons |
-| React Icons | Additional icons |
-| Motion | UI animations |
-| next-themes | Theme management |
-| Vercel | Client-side deployment |
+### Frontend
 
----
+- **Next.js 16** – React framework and application routing.
+- **React 19** – User interface development.
+- **TypeScript** – Static typing and maintainable code.
+- **Tailwind CSS 4** – Styling and responsive layouts.
+- **Motion / Framer Motion** – Animations and transitions.
 
-## 🔗 Application Architecture
+### Authentication and Form Handling
 
-PizzaHub follows a separate client-server architecture.
+- **Better Auth** – Authentication and session management.
+- **React Hook Form** – Form handling.
+- **Zod** – Schema validation.
+- **@hookform/resolvers** – Form validation integration.
 
-```text
-             ┌─────────────────────────┐
-             │     PizzaHub Client     │
-             │     Next.js / React     │
-             └────────────┬────────────┘
-                          │
-                    REST API / JWT
-                          │
-             ┌────────────▼────────────┐
-             │     PizzaHub Server     │
-             │       Express.js        │
-             └────────────┬────────────┘
-                          │
-             ┌────────────┼────────────┐
-             │            │            │
-          MongoDB       Stripe       ImgBB
-          Database     Payments      Images
-```
+### API and Payment Integration
 
-- **Next.js:** Provides the frontend application and dashboards.
-- **Express.js:** Handles backend REST API operations.
-- **MongoDB:** Stores application and authentication data.
-- **Better Auth:** Manages authentication and sessions.
-- **JWT:** Supports authenticated client-server communication.
-- **Stripe:** Handles vendor Premium subscriptions.
-- **ImgBB:** Provides image hosting for uploaded images.
+- **Axios** – HTTP client.
+- **Fetch API** – Backend API communication.
+- **Stripe** – Premium subscription payments.
+- **ImgBB API** – Menu image uploads.
+- **MongoDB** – Database integration for authentication.
 
-For backend implementation details, visit the [PizzaHub Server Repository](https://github.com/bhola16/pizzahub-server).
+### UI Libraries and Utilities
+
+- **shadcn/ui** – Reusable UI components.
+- **Lucide React** – Icons.
+- **React Icons** – Additional icon library.
+- **Sonner** – Toast notifications.
+- **next-themes** – Theme management.
 
 ---
 
-## 📂 Project Structure
-
-The main client-side project structure is organized as follows:
+## 📁 Project Structure
 
 ```text
 pizzahub-client/
@@ -344,6 +196,7 @@ pizzahub-client/
 │   └── assets/
 │
 ├── src/
+│   │
 │   ├── app/
 │   │   ├── api/
 │   │   ├── dashboard/
@@ -355,9 +208,9 @@ pizzahub-client/
 │   │   ├── profile/
 │   │   ├── sign-in/
 │   │   ├── sign-up/
+│   │   ├── globals.css
 │   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   └── globals.css
+│   │   └── page.tsx
 │   │
 │   ├── components/
 │   │   ├── dashboard/
@@ -382,7 +235,6 @@ pizzahub-client/
 ├── next.config.ts
 ├── package.json
 ├── package-lock.json
-├── tsconfig.json
 └── README.md
 ```
 
@@ -390,23 +242,19 @@ pizzahub-client/
 
 ## ⚙️ Installation and Setup
 
-Follow these steps to run PizzaHub locally.
+Follow these steps to run the PizzaHub client application locally.
 
 ### Prerequisites
 
 Make sure you have installed:
 
-- [Node.js](https://nodejs.org/)
-- npm
-- [Git](https://git-scm.com/)
-- MongoDB database or connection string.
-- Google OAuth credentials if Google sign-in is required.
-- ImgBB API key for image uploads.
-- Stripe account for subscription payment testing.
+- Node.js (LTS recommended).
+- npm.
+- Git.
 
-The PizzaHub backend must also be configured and running.
+You will also need access to the PizzaHub backend API and the required credentials for the external services.
 
-### 1. Clone the Client Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/bhola16/pizzahub-client.git
@@ -426,243 +274,286 @@ npm install
 
 ### 4. Configure Environment Variables
 
-Create a `.env.local` file in the project root.
+Create a `.env.local` file in the root directory of the project.
+
+Configure the required environment variables:
 
 ```env
-# Backend API URL
+# Backend API
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
-# Better Auth application URL
+# Authentication
 NEXT_PUBLIC_AUTH_URL=http://localhost:3000
-
-# MongoDB connection
 MONGODB_URL=your_mongodb_connection_string
 
-# Google OAuth credentials
+# Google Authentication
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# ImgBB API key
+# Image Upload
 NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
 
-# Vendor menu item upgrade limit
+# Vendor Subscription
 NEXT_PUBLIC_UPGRADE_LIMIT=3
+
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
 ```
 
-Replace the placeholder values with your actual credentials.
+### Environment Variable Description
+
+| Variable                    | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| `NEXT_PUBLIC_API_URL`       | Base URL of the PizzaHub backend API.                  |
+| `NEXT_PUBLIC_AUTH_URL`      | Base URL used by the Better Auth client.               |
+| `MONGODB_URL`               | MongoDB connection string used by Better Auth.         |
+| `GOOGLE_CLIENT_ID`          | Google OAuth client ID.                                |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret.                            |
+| `NEXT_PUBLIC_IMGBB_API_KEY` | API key used for uploading menu images to ImgBB.       |
+| `NEXT_PUBLIC_UPGRADE_LIMIT` | Free-plan active menu item limit.                      |
+| `STRIPE_SECRET_KEY`         | Stripe secret key for server-side payment integration. |
 
 **Important:**
 
-- Never commit environment files or secrets to GitHub.
-- Keep database credentials and OAuth secrets private.
-- Variables prefixed with `NEXT_PUBLIC_` are accessible in the browser.
-- Configure Stripe secret keys and webhook signing secrets only in the backend environment.
+- Replace all placeholder values with your actual credentials.
+- Set the backend API URL according to your local or deployed server.
+- Configure authentication URLs and Google OAuth callback settings for your environment.
+- The backend must be configured with its own required environment variables.
+- Never commit `.env.local` or expose private credentials.
+- Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Never store private secrets in these variables.
 
-### 5. Configure Google Authentication
-
-To enable Google sign-in:
-
-1. Create an OAuth application in Google Cloud Console.
-2. Configure the authorized JavaScript origin.
-3. Configure the callback URL required by Better Auth.
-4. Add the Google client ID and client secret to the environment variables.
-5. Configure production OAuth settings when deploying.
-
-### 6. Configure the Backend
-
-Clone the server repository separately:
-
-```bash
-git clone https://github.com/bhola16/pizzahub-server.git
-cd pizzahub-server
-npm install
-```
-
-Configure the backend environment variables according to the server repository.
-
-Example configuration:
-
-```env
-MONGODB_URL=your_mongodb_connection_string
-CLIENT_URL=http://localhost:3000
-PORT=8000
-
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-```
-
-Configure any additional authentication and database variables required by the server.
-
-Start the backend:
+### 5. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-The backend should be available at:
-
-```text
-http://localhost:8000
-```
-
-See the [PizzaHub Server Repository](https://github.com/bhola16/pizzahub-server) for complete backend instructions.
-
-### 7. Start the Client
-
-Open another terminal in the client project directory:
-
-```bash
-npm run dev
-```
-
-### 8. Open the Application
-
-Visit:
+Open your browser and visit:
 
 ```text
 http://localhost:3000
 ```
 
-PizzaHub should now be running locally.
+---
+
+## 📜 Available Scripts
+
+The following scripts are available in `package.json`:
+
+| Command         | Description                            |
+| --------------- | -------------------------------------- |
+| `npm run dev`   | Starts the Next.js development server. |
+| `npm run build` | Builds the application for production. |
+| `npm run start` | Starts the production server.          |
+| `npm run lint`  | Runs ESLint to check code quality.     |
 
 ---
 
-## 📦 Available Scripts
+## 🧭 Application Routes
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Starts the development server |
-| `npm run build` | Creates an optimized production build |
-| `npm run start` | Starts the production server |
-| `npm run lint` | Runs ESLint checks |
+### Public Routes
 
----
+| Route        | Description                  |
+| ------------ | ---------------------------- |
+| `/`          | Homepage                     |
+| `/menu`      | Browse and filter menu items |
+| `/menu/[id]` | Individual menu item details |
+| `/sign-in`   | User sign-in                 |
+| `/sign-up`   | User registration            |
 
-## 🔐 Authentication and Authorization
+### Customer Routes
 
-PizzaHub uses Better Auth for authentication and session management.
+| Route                        | Description            |
+| ---------------------------- | ---------------------- |
+| `/profile`                   | Manage user profile    |
+| `/dashboard/customer`        | Customer dashboard     |
+| `/dashboard/customer/orders` | View and manage orders |
 
-### Authentication Methods
+### Vendor Routes
 
-- Email and password.
-- Google OAuth.
+| Route                             | Description                 |
+| --------------------------------- | --------------------------- |
+| `/dashboard/vendor`               | Vendor dashboard            |
+| `/dashboard/vendor/add-menu-item` | Add a new menu item         |
+| `/dashboard/vendor/my-menu-items` | Manage submitted menu items |
+| `/dashboard/vendor/orders`        | Manage customer orders      |
+| `/dashboard/vendor/subscription`  | Manage vendor subscription  |
 
-### Role-Based Access
+### Admin Routes
 
-| Role | Permissions |
-| --- | --- |
-| Customer | Browse menu items, place orders, and manage personal orders |
-| Vendor | Manage menu items, handle orders, and manage subscriptions |
-| Admin | Manage users, moderate menu items, and monitor transactions |
+| Route                               | Description                  |
+| ----------------------------------- | ---------------------------- |
+| `/dashboard/admin`                  | Admin dashboard              |
+| `/dashboard/admin/manage-menuItems` | Review and manage menu items |
+| `/dashboard/admin/users`            | Manage users                 |
+| `/dashboard/admin/transactions`     | Monitor transactions         |
 
-The client obtains authentication session information through Better Auth. Authenticated API requests use JWT-based authorization, while the backend verifies access before processing protected operations.
+### Payment Routes
 
----
-
-## 💳 Stripe Subscription and Webhook Integration
-
-Stripe Checkout handles Premium subscription payments for vendors.
-
-### Payment Flow
-
-1. Vendor selects the Premium subscription.
-2. Client requests a Checkout Session from the backend.
-3. Backend creates the Stripe Checkout Session.
-4. Vendor completes payment through Stripe.
-5. Stripe sends a webhook event to the backend.
-6. Backend verifies the webhook signature.
-7. Backend updates the subscription information.
-8. Client retrieves the latest subscription status.
-
-### Webhook Events
-
-The backend handles relevant Stripe subscription events, including:
-
-- `checkout.session.completed`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-- `invoice.payment_succeeded`
-- `invoice.payment_failed`
-
-**Security:** Subscription status must be updated through verified backend webhook events, not simply through a frontend payment success redirect.
-
-For local testing, configure Stripe CLI or a Stripe webhook endpoint to forward events to the backend.
+| Route                        | Description                                   |
+| ---------------------------- | --------------------------------------------- |
+| `/dashboard/payment`         | Premium subscription checkout                 |
+| `/dashboard/payment/success` | Payment success and subscription verification |
+| `/dashboard/payment/cancel`  | Checkout cancellation page                    |
 
 ---
 
-## 🔄 Application Flow
+## 🔑 Authentication and Data Flow
 
-```text
-                 User visits PizzaHub
-                         |
-                         v
-                   Explore Menu
-                         |
-                         v
-                Search and Filter Items
-                         |
-                         v
-                 View Menu Details
-                         |
-                         v
-                 User Authentication
-                         |
-              ┌──────────┴──────────┐
-              |          |         |
-              v          v         v
-           Customer    Vendor     Admin
-              |          |         |
-              v          v         v
-          Place       Manage     Manage
-          Orders      Menu       Users
-              |          |         |
-              v          v         v
-          Track       Manage     Moderate
-          Orders      Orders     Menu Items
-                         |
-                         v
-                   Premium Upgrade
-                         |
-                         v
-                   Stripe Checkout
-                         |
-                         v
-                  Verified Webhook
-                         |
-                         v
-                 Premium Activation
+PizzaHub uses Better Auth for user authentication and session management.
+
+The authentication system supports:
+
+- Email and password sign-in.
+- Google OAuth sign-in.
+- Session-based authentication.
+- JWT token generation and retrieval.
+- Additional user information, including account role and subscription plan.
+
+The application uses role-based access to provide different dashboard experiences for customers, vendors, and administrators.
+
+The client communicates with the separate PizzaHub backend API for:
+
+- Menu item management.
+- Customer orders.
+- Vendor operations.
+- Admin operations.
+- Subscription and payment-related data.
+
+Profile information is also accessed through the client's Next.js API route at `/api/profile`.
+
+---
+
+## 💳 Payment Integration
+
+PizzaHub uses Stripe Checkout for vendor Premium subscriptions.
+
+The payment flow works as follows:
+
+1. A vendor opens the subscription page.
+2. The vendor selects the Premium plan.
+3. The client requests a Stripe Checkout session from the backend.
+4. The vendor is redirected to the Stripe Checkout page.
+5. After checkout, the vendor returns to the success or cancellation page.
+6. The success page checks the subscription status through the backend before displaying the verification result.
+
+---
+
+## 🖼️ Image Upload
+
+PizzaHub uses the ImgBB API to upload menu item images.
+
+When a vendor adds or edits a menu item, the application uploads the selected image and uses the returned image URL in the menu item data.
+
+To enable image uploads, configure:
+
+```env
+NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
 ```
 
 ---
 
-## 🌙 Theme Management
+## 🌙 Theme Support
 
-PizzaHub supports light and dark themes using `next-themes`.
+PizzaHub supports both light and dark themes through `next-themes`.
 
-The shared theme provider manages the application appearance, while the theme toggle allows users to switch between themes.
+The theme provider is configured in:
+
+```text
+src/components/providers/ThemeProvider.tsx
+```
+
+The global application layout wraps the application with the theme provider, allowing shared components and pages to use the selected theme.
 
 ---
 
 ## 🚀 Deployment
 
-The client application is deployed on **Vercel**.
+The client application is deployed using **Vercel**.
 
-**Live Website:** [PizzaHub](https://pizzshub-client.vercel.app)
+**Live URL:** [https://pizzshub-client.vercel.app/](https://pizzshub-client.vercel.app/)
 
-### Client Deployment
+To deploy your own instance:
 
-1. Push the client repository to GitHub.
+1. Push the client project to GitHub.
 2. Import the repository into Vercel.
-3. Select Next.js as the framework.
-4. Configure the required environment variables.
-5. Set the production backend API URL.
-6. Configure MongoDB and Better Auth settings.
-7. Configure Google OAuth callback URLs.
+3. Configure the required environment variables in Vercel Project Settings.
+4. Set `NEXT_PUBLIC_API_URL` to your deployed PizzaHub backend URL.
+5. Configure authentication and Google OAuth URLs for the deployed domain.
+6. Ensure the backend allows requests from the deployed frontend origin.
+7. Configure Stripe and ImgBB credentials.
 8. Deploy the application.
-9. Verify authentication, menu browsing, dashboards, and API operations.
 
-### Backend Deployment
+Make sure the backend, authentication callback URLs, and payment configuration are correctly configured for the production domain.
 
-1. Deploy the server repository to a Node.js-compatible hosting platform.
-2. Configure MongoDB connection settings.
-3. Configure the production frontend
+---
+
+## 🐛 Troubleshooting
+
+### Backend API Connection Error
+
+- Check whether the backend server is running.
+- Verify `NEXT_PUBLIC_API_URL`.
+- Ensure the backend accepts requests from the client domain.
+
+### Authentication Problems
+
+- Verify `NEXT_PUBLIC_AUTH_URL`.
+- Check the MongoDB connection string.
+- Confirm Google OAuth credentials and callback configuration.
+- Ensure the client and server authentication configurations are compatible.
+
+### Image Upload Error
+
+- Verify `NEXT_PUBLIC_IMGBB_API_KEY`.
+- Check the ImgBB API service and upload response.
+
+### Stripe Payment Error
+
+- Verify the backend Stripe configuration.
+- Check the Stripe credentials.
+- Confirm the Stripe success and cancellation URLs are configured correctly on the backend.
+
+### Menu Items or Orders Not Loading
+
+- Verify that the backend API is available.
+- Check authentication and JWT token availability.
+- Inspect the browser console and network requests for API errors.
+
+---
+
+## 🤝 Contributing
+
+Contributions, suggestions, and improvements are welcome.
+
+If you want to contribute:
+
+1. Fork the repository.
+2. Create a new branch.
+3. Make your changes.
+4. Test the application.
+5. Commit and push your changes.
+6. Open a Pull Request.
+
+---
+
+## 👨‍💻 Author
+
+**Bholanath Bala**
+
+Electronics & Communication Engineering Graduate
+Khulna University, Bangladesh
+
+**GitHub:** [@bhola16](https://github.com/bhola16)
+
+---
+
+## 📄 License
+
+No license file was identified in the supplied project source. Please add a `LICENSE` file if you intend to distribute the project under a specific open-source license.
+
+---
+
+\<p align="center">
+&#x20; \<strong>🍕 PizzaHub — Freshly Baked. Always Delicious.\</strong>
+\</p>
