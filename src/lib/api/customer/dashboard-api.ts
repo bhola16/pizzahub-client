@@ -46,7 +46,6 @@ export async function deleteRejectedCustomerOrder(
   if (error || !token) {
     throw new Error("Authentication required.");
   }
-  c
 
   const response = await fetch(`${SERVER_URL}/orders/${orderId}/rejected`, {
     method: "DELETE",

@@ -1,5 +1,5 @@
-import { MenuItem } from "./menu-server";
-
+import type { MenuItem } from "./menu-server";
+export type { MenuItem } from "./menu-server";
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface MenuResponse {
