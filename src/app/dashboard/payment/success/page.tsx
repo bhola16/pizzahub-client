@@ -1,38 +1,33 @@
-
 "use client";
 
 import {
-  CheckCircle2,
   ArrowRight,
+  CheckCircle2,
+  Crown,
   Home,
   LayoutDashboard,
-  Crown,
-  Sparkles,
-  ShieldCheck,
   Loader2,
-  RefreshCw,
+  ShieldCheck,
+  Sparkles,
   XCircle,
 } from "lucide-react";
 
+import { getVendorSubscription } from "@/lib/api/vendor/subscription-api";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { getVendorSubscription } from "@/lib/api/vendor/subscription-api";
 
 type VerificationStatus = "checking" | "success" | "pending" | "error";
 
 export default function PaymentSuccessPage() {
   const { data: session, isPending } = authClient.useSession();
 
-  const [status, setStatus] =
-    useState<VerificationStatus>("checking");
+  const [status, setStatus] = useState<VerificationStatus>("checking");
 
   useEffect(() => {
     if (isPending) return;
 
-    const user = session?.user as
-      | { role?: string }
-      | undefined;
+    const user = session?.user as { role?: string } | undefined;
 
     if (!user || user.role !== "vendor") {
       setStatus("error");
@@ -49,18 +44,14 @@ export default function PaymentSuccessPage() {
           if (
             subscription.premium === true &&
             subscription.subscriptionPlan === "premium" &&
-            ["active", "trialing"].includes(
-              subscription.subscriptionStatus
-            )
+            ["active", "trialing"].includes(subscription.subscriptionStatus)
           ) {
             if (!cancelled) setStatus("success");
             return;
           }
 
           if (attempt < 9) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, 2000)
-            );
+            await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         }
 
@@ -82,9 +73,7 @@ export default function PaymentSuccessPage() {
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
         <div className="text-center">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-          <h1 className="mt-5 text-xl font-bold">
-            Verifying Your Payment
-          </h1>
+          <h1 className="mt-5 text-xl font-bold">Verifying Your Payment</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Please wait while we confirm your Premium subscription.
           </p>
@@ -107,8 +96,7 @@ export default function PaymentSuccessPage() {
               verified
                 ? "bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/60 dark:to-emerald-950/40"
                 : "bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/50 dark:to-orange-950/40"
-            }`}
-          >
+            }`}>
             <div className="absolute right-8 top-8">
               <Sparkles
                 size={28}
@@ -121,8 +109,7 @@ export default function PaymentSuccessPage() {
                 verified
                   ? "bg-green-100 ring-green-100/50 dark:bg-green-900/50 dark:ring-green-900/20"
                   : "bg-amber-100 ring-amber-100/50 dark:bg-amber-900/50 dark:ring-amber-900/20"
-              }`}
-            >
+              }`}>
               {verified ? (
                 <CheckCircle2
                   size={58}
@@ -169,9 +156,7 @@ export default function PaymentSuccessPage() {
                 />
                 <div>
                   <h2 className="font-semibold text-slate-900 dark:text-white">
-                    {verified
-                      ? "You're all set!"
-                      : "Your account is safe"}
+                    {verified ? "You're all set!" : "Your account is safe"}
                   </h2>
 
                   <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -186,8 +171,7 @@ export default function PaymentSuccessPage() {
             <div className="mt-7 flex flex-col gap-3">
               <Link
                 href="/dashboard/vendor/subscription"
-                className="group flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3.5 font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-green-700"
-              >
+                className="group flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3.5 font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-green-700">
                 {verified ? "View Subscription" : "Check Subscription"}
                 <ArrowRight
                   size={18}
@@ -197,16 +181,14 @@ export default function PaymentSuccessPage() {
 
               <Link
                 href="/dashboard/vendor"
-                className="flex items-center justify-center gap-2 rounded-xl border px-6 py-3.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
+                className="flex items-center justify-center gap-2 rounded-xl border px-6 py-3.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                 <LayoutDashboard size={18} />
                 Back to Dashboard
               </Link>
 
               <Link
                 href="/"
-                className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-medium text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-              >
+                className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-medium text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
                 <Home size={18} />
                 Back to Home
               </Link>

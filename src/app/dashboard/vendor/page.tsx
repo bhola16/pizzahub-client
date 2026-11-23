@@ -215,7 +215,7 @@ export default function VendorDashboardPage() {
       </div>
 
       <div
-        className={`relative overflow-hidden rounded-2xl border p-6 sm:p-8 ${
+        className={`relative overflow-hidden rounded-2xl border p-6 mt-8 sm:p-8 ${
           isPremium
             ? "border-amber-200 bg-gradient-to-br from-amber-50 via-white to-yellow-50 dark:border-amber-900 dark:from-amber-950/40 dark:via-card dark:to-yellow-950/20"
             : "border-green-200 bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:border-green-900 dark:from-green-950/40 dark:via-card dark:to-emerald-950/20"

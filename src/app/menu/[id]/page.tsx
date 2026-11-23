@@ -21,9 +21,6 @@ interface MenuDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-
-
-
 export default async function MenuDetailsPage({
   params,
 }: MenuDetailsPageProps) {
@@ -40,7 +37,13 @@ export default async function MenuDetailsPage({
     notFound();
   }
 
-  const item = await getMenuItemById(id);
+  let item;
+
+  try {
+    item = await getMenuItemById(id);
+  } catch {
+    notFound();
+  }
 
   if (!item || item.status !== "approved" || !item.isActive) {
     notFound();

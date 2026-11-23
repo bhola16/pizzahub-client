@@ -148,13 +148,12 @@ export default function AddMenuItemPage() {
           setCurrentItems(data.totalItems ?? 0);
         }
       } catch (error) {
-        console.error("Menu item count error:", error);
+        toast.error("Menu item count error.");
 
         if (!cancelled) {
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : "Unable to fetch your menu item count.",
+          setCurrentItems(0);
+          toast.warning(
+            "Unable to load your menu item count. Please try again.",
           );
         }
       } finally {

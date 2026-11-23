@@ -1,3 +1,5 @@
+import { getTokenFromClient } from "@/lib/api/get-token";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface VendorSubscription {
@@ -9,11 +11,25 @@ export interface VendorSubscription {
   currentPeriodEnd?: string | null;
 }
 
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { token, error } = await getTokenFromClient();
+
+  if (error || !token) {
+    throw new Error("Authentication failed. Please log in again.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 // Get vendor subscription
 export async function getVendorSubscription(): Promise<VendorSubscription> {
   const response = await fetch(`${API_URL}/api/payments/subscription`, {
     method: "GET",
     credentials: "include",
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
 
@@ -33,9 +49,7 @@ export async function createCheckoutSession(): Promise<string> {
     {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: await getAuthHeaders(),
     },
   );
 
@@ -65,9 +79,7 @@ export async function cancelVendorSubscription(): Promise<{
   const response = await fetch(`${API_URL}/api/payments/cancel-subscription`, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
   });
 
   const data = await response.json();
