@@ -175,7 +175,7 @@ export default function Navbar() {
 
       toast.success("Logged out successfully!");
 
-      router.replace("/");
+      router.replace("/sign-in");
       router.refresh();
     } catch (error) {
       console.error("Logout error:", error);

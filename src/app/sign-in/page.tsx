@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Pizza } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pizza, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -20,12 +20,12 @@ export default function SignInPage() {
     password: "",
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await authClient.signIn.email({
+      const { data, error } = await authClient.signIn.email({
         email: formData.email,
         password: formData.password,
       });
@@ -36,7 +36,15 @@ export default function SignInPage() {
       }
 
       toast.success("Welcome back to PizzaHub!");
-      router.push("/");
+
+      const role = data.user.role;
+
+      if (role === "vendor") {
+        router.push("/dashboard/vendor");
+      } else {
+        router.push("/dashboard/customer");
+      }
+
       router.refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");

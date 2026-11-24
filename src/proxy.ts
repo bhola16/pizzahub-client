@@ -5,11 +5,18 @@ import { auth } from "./lib/auth";
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Allow payment result pages without authentication redirect.
+  if (
+    pathname === "/dashboard/payment/success" ||
+    pathname === "/dashboard/payment/cancel"
+  ) {
+    return NextResponse.next();
+  }
+
   const session = await auth.api.getSession({
     headers: request.headers,
   });
 
-  // Require authentication.
   if (!session?.user) {
     const signInUrl = new URL("/sign-in", request.url);
 
@@ -25,7 +32,6 @@ export async function proxy(request: NextRequest) {
     role?: string;
   };
 
-  // Payment pages are available to authenticated vendors only.
   const isPaymentRoute =
     pathname === "/dashboard/payment" ||
     pathname.startsWith("/dashboard/payment/");
