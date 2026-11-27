@@ -1,12 +1,14 @@
+
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { auth, connectMongoDB } from "@/lib/auth";
 
 export default async function VendorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await connectMongoDB();
   const session = await auth.api.getSession({
     headers: await headers(),
   });

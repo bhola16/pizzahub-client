@@ -1,17 +1,23 @@
+
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { ObjectId } from "mongodb";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/auth";
+import { auth, db, connectMongoDB } from "@/lib/auth";
 
 export async function GET() {
   try {
+    // Ensure MongoDB is connected before accessing the session.
+    await connectMongoDB();
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
     if (!session?.user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const userId = session.user.id;
@@ -36,11 +42,14 @@ export async function GET() {
           subscriptionPlan: 1,
           emailVerified: 1,
         },
-      },
+      }
     );
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "User not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
@@ -58,7 +67,7 @@ export async function GET() {
 
     return NextResponse.json(
       { message: "Failed to fetch profile" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
