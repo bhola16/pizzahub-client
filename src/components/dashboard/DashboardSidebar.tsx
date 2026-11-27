@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
+  ClipboardList,
+  CreditCard,
   LayoutDashboard,
   PlusCircle,
-  UtensilsCrossed,
-  ShoppingBag,
-  CreditCard,
-  Users,
-  ClipboardList,
   Receipt,
+  ShoppingBag,
+  Users,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import DashboardFooter from "./DashboardFooter";
 
 interface DashboardSidebarProps {
@@ -90,13 +90,14 @@ export default function DashboardSidebar({
 
       <aside
         className={`
-    fixed left-0 top-20 z-60 flex h-[calc(100dvh-5rem)] w-72
-    flex-col overflow-hidden border-r border-gray-200 bg-white
-    shadow-xl transition-transform duration-300
-    dark:border-gray-800 dark:bg-[#171412]
-    lg:static lg:z-auto lg:h-full lg:translate-x-0 lg:shadow-none
-    ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-  `}>
+  fixed left-0 top-20 z-60 flex h-[calc(100dvh-5rem)]
+  w-72 min-w-72 shrink-0 flex-col overflow-hidden
+  border-r border-gray-200 bg-white shadow-xl
+  transition-transform duration-300
+  dark:border-gray-800 dark:bg-[#171412]
+  lg:static lg:z-auto lg:h-full lg:translate-x-0 lg:shadow-none
+  ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+`}>
         {/* Logo */}
         <div className="flex h-20 shrink-0 items-center justify-between border-b border-gray-200 px-6 dark:border-gray-800">
           <Link
@@ -122,37 +123,60 @@ export default function DashboardSidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
-          <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-            {role} Dashboard
-          </p>
+        
+{/* Navigation */}
+<nav className="flex-1 overflow-y-auto px-4 py-6">
+    <p className="mb-5 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500">
+    {role} workspace
+  </p>
 
-          {links.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== `/dashboard/${role}` &&
-                pathname.startsWith(`${item.href}/`));
+  <div className="space-y-1">
+    {links.map((item) => {
+      const Icon = item.icon;
+      const isActive =
+        pathname === item.href ||
+        (item.href !== `/dashboard/${role}` &&
+          pathname.startsWith(`${item.href}/`));
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-[#E87932]/10 text-[#E87932]"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                }`}>
-                <Icon size={19} className="block h-[19px] w-[19px] shrink-0" />
-                <span className="flex-1 truncate">{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+      return (
+        <Link
+          key={item.href}
+          href={item.href}
+          onClick={onClose}
+          className={`group relative mx-auto flex w-[calc(100%-20px)] items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200 ${
+            isActive
+              ? "bg-[#E87932]/10 text-[#E87932] dark:bg-[#E87932]/15"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+          }`}>
+          {/* Active Indicator */}
+          {isActive && (
+            <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#E87932]" />
+          )}
+
+          <Icon
+            size={19}
+            strokeWidth={isActive ? 2.3 : 1.8}
+            className={`shrink-0 transition-colors duration-200 ${
+              isActive
+                ? "text-[#E87932]"
+                : "text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-200"
+            }`}
+          />
+
+          <span className="min-w-0 flex-1 truncate">{item.name}</span>
+
+          {isActive && (
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#E87932]" />
+          )}
+        </Link>
+      );
+    })}
+  </div>
+</nav>
+
 
         {/* Footer */}
-        <div className="shrink-0">
+        <div className="w-full shrink-0  border-gray-200 p-3 dark:border-gray-800">
           <DashboardFooter />
         </div>
       </aside>
